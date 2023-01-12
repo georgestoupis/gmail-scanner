@@ -3,7 +3,7 @@ package com.gmail.scanner.service;
 import com.gmail.scanner.google.GoogleServiceProvider;
 import com.gmail.scanner.google.GoogleServiceType;
 import com.gmail.scanner.security.OAuth2AuthorizedClientProvider;
-import com.gmail.scanner.service.model.WoltOrder;
+import com.gmail.scanner.service.model.FoodOrder;
 import com.gmail.scanner.service.parser.HtmlParser;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.ListMessagesResponse;
@@ -29,7 +29,7 @@ public class WoltService {
     this.htmlParser = htmlParser;
   }
 
-  public List<WoltOrder> getOrders(int year) throws IOException {
+  public List<FoodOrder> getOrders(int year) throws IOException {
 
     //TODO: parameterize the below
     String user = "me";
@@ -41,13 +41,13 @@ public class WoltService {
     List<Message> messages = listMessagesResponse.getMessages();
     LOG.info("Got {} wolt orders emails", messages.size());
 
-    List<WoltOrder> woltOrders = new ArrayList<>();
+    List<FoodOrder> woltOrders = new ArrayList<>();
     for (Message message : messages) {
       Message detailedMessage = gmail.users().messages().get(user, message.getId()).execute();
       byte[] data = detailedMessage.getPayload().getParts().get(0).getBody().decodeData();
       String dataString = new String(data, StandardCharsets.UTF_8);
-      WoltOrder woltOrder = htmlParser.parseWoltOrder(dataString);
-      woltOrders.add(woltOrder);
+      FoodOrder foodOrder = htmlParser.parseWoltOrder(dataString);
+      woltOrders.add(foodOrder);
     }
 
     return woltOrders;

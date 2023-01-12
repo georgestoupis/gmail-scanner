@@ -3,7 +3,7 @@ package com.gmail.scanner.service;
 import com.gmail.scanner.google.GoogleServiceProvider;
 import com.gmail.scanner.google.GoogleServiceType;
 import com.gmail.scanner.security.OAuth2AuthorizedClientProvider;
-import com.gmail.scanner.service.model.EfoodOrder;
+import com.gmail.scanner.service.model.FoodOrder;
 import com.gmail.scanner.service.parser.HtmlParser;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.ListMessagesResponse;
@@ -29,7 +29,7 @@ public class EfoodService {
     this.htmlParser = htmlParser;
   }
 
-  public List<EfoodOrder> getOrders(int year) throws IOException {
+  public List<FoodOrder> getOrders(int year) throws IOException {
 
     //TODO: parameterize the below
     String user = "me";
@@ -41,15 +41,15 @@ public class EfoodService {
     List<Message> messages = listMessagesResponse.getMessages();
     LOG.info("Got {} efood orders emails", messages.size());
 
-    List<EfoodOrder> efoodOrders = new ArrayList<>();
+    List<FoodOrder> foodOrders = new ArrayList<>();
     for (Message message : messages) {
       Message detailedMessage = gmail.users().messages().get(user, message.getId()).execute();
       byte[] data = detailedMessage.getPayload().getBody().decodeData();
       String dataString = new String(data, StandardCharsets.UTF_8);
-      EfoodOrder efoodOrder = htmlParser.parseEfoodOrder(dataString);
-      efoodOrders.add(efoodOrder);
+      FoodOrder foodOrder = htmlParser.parseEfoodOrder(dataString);
+      foodOrders.add(foodOrder);
     }
 
-    return efoodOrders;
+    return foodOrders;
   }
 }
