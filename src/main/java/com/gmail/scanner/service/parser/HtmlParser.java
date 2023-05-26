@@ -3,6 +3,7 @@ package com.gmail.scanner.service.parser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gmail.scanner.service.model.FoodOrder;
+import com.gmail.scanner.service.model.FoodOrderSource;
 import java.util.Optional;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -18,14 +19,22 @@ public class HtmlParser {
     this.mapper = mapper;
   }
 
-  public FoodOrder parseEfoodOrder(String emailBody) throws JsonProcessingException {
+  public FoodOrder parserOrder(String emailBody, FoodOrderSource source) throws JsonProcessingException {
+    return switch (source) {
+      case EFOOD -> parseEfoodOrder(emailBody);
+      case WOLT -> parseWoltOrder(emailBody);
+      case BOX -> null;
+    };
+  }
+
+  private FoodOrder parseEfoodOrder(String emailBody) throws JsonProcessingException {
     Document document = Jsoup.parse(emailBody);
     Elements scripts = document.getElementsByTag("script");
     Optional<String> orderJson = scripts.stream().map(s -> s.childNodes().stream().findFirst().get().toString()).findFirst();
     return orderJson.isEmpty() ? null : mapper.readValue(orderJson.get(), FoodOrder.class);
   }
 
-  public FoodOrder parseWoltOrder(String emailBody) throws JsonProcessingException {
+  private FoodOrder parseWoltOrder(String emailBody) throws JsonProcessingException {
     Document document = Jsoup.parse(emailBody);
     //TODO: parse a wolt email receipt
     return null;
