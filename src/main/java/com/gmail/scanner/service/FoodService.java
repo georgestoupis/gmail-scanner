@@ -49,7 +49,7 @@ public class FoodService {
     // Read messages
     ListMessagesResponse listMessagesResponse = gmail.users().messages().list(user).setQ(queries.get(source).formatted(year)).setMaxResults(maxResults).execute();
     List<Message> messages = listMessagesResponse.getMessages();
-    LOG.info("Got {} efood orders emails", messages.size());
+    LOG.info("Got {} {} order emails", messages.size(), source);
 
     List<Message> detailedMessageList = this.populateDetailedMessageList(messages, user);
 
@@ -76,7 +76,7 @@ public class FoodService {
 
       public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) {
         // do what you want if error occurs
-        LOG.warn("Couldn't get message detailed message: {}", e.getMessage());
+        LOG.warn("Couldn't get detailed message: {}", e.getMessage());
       }
     };
 
