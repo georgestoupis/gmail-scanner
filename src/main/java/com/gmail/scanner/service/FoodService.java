@@ -30,7 +30,7 @@ public class FoodService {
   private static final Map<FoodOrderSource, String> queries = Map.of(
       FoodOrderSource.EFOOD, "from:noreply@e-food.gr AND (subject:Η παραγγελία σου OR subject:από το efood!) AND before:%1$d/12/31 AND after:%1$d/01/01",
       FoodOrderSource.WOLT, "from:info@wolt.com AND subject:Your order’s confirmed AND before:%1$d/12/31 AND after:%1$d/01/01",
-      FoodOrderSource.BOX, "");//TODO: Add BOX query
+      FoodOrderSource.BOX, "from:support@box.gr AND subject:Η παραγγελία σας στο κατάστημα AND before:%1$d/12/31 AND after:%1$d/01/01\"");
 
   private final Gmail gmail;
   private final HtmlParser htmlParser;
@@ -56,6 +56,9 @@ public class FoodService {
     List<FoodOrder> foodOrders = new ArrayList<>();
     for (Message detailedMessage : detailedMessageList) {
       byte[] data = detailedMessage.getPayload().getBody().decodeData();
+      if (data == null) {
+        data = detailedMessage.getPayload().getParts().get(0).getBody().decodeData();
+      }
       String dataString = new String(data, StandardCharsets.UTF_8);
       FoodOrder foodOrder = htmlParser.parserOrder(dataString, source);
       foodOrders.add(foodOrder);

@@ -9,6 +9,7 @@ import com.gmail.scanner.service.model.FoodOrderSource;
 import com.gmail.scanner.service.parser.HtmlParser;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,13 @@ public class Endpoint {
   @GetMapping("/scan/food/{year}")
   public ScanResult scan(@PathVariable int year) throws IOException, GeneralSecurityException {
     FoodService foodService = new FoodService(googleServiceProvider, oauth2AuthorizedClientProvider, htmlParser);
-    List<FoodOrder> foodOrders = foodService.getOrders(year, FoodOrderSource.EFOOD);
+    List<FoodOrder> efoodOrders = foodService.getOrders(year, FoodOrderSource.EFOOD);
+    List<FoodOrder> woltOrders = foodService.getOrders(year, FoodOrderSource.WOLT);
+    List<FoodOrder> boxOrders = foodService.getOrders(year, FoodOrderSource.BOX);
+    List<FoodOrder> foodOrders = new ArrayList<>();
+    foodOrders.addAll(efoodOrders);
+    foodOrders.addAll(woltOrders);
+    foodOrders.addAll(boxOrders);
     double sum = foodOrders.stream().mapToDouble(o -> Double.parseDouble(o.getPrice())).sum();
     ScanResult scanResult = new ScanResult("food", String.valueOf(year), foodOrders.size(), sum);
     LOG.info("Result: {}", scanResult);
