@@ -9,7 +9,6 @@ spring:
             scope:
               - email
               - profile
-              - https://www.googleapis.com/auth/calendar
               - https://www.googleapis.com/auth/gmail.readonly
 logging:
   level:
