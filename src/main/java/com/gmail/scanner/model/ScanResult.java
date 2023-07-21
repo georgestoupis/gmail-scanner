@@ -1,5 +1,5 @@
 package com.gmail.scanner.model;
 
-public record ScanResult(String type, String period, int size, double sum) {
+public record ScanResult(String type, String period, int size, double sum, double monthAvg, String msg) {
 
 }

@@ -32,11 +32,6 @@ public class Endpoint {
     this.htmlParser = htmlParser;
   }
 
-  @GetMapping("/")
-  public String index() {
-    return "Greetings from Spring Boot!";
-  }
-
   @GetMapping("/scan/food/{year}")
   public ScanResult scan(@PathVariable int year) throws IOException, GeneralSecurityException {
     FoodService foodService = new FoodService(googleServiceProvider, oauth2AuthorizedClientProvider, htmlParser);
@@ -48,7 +43,7 @@ public class Endpoint {
     foodOrders.addAll(woltOrders);
     foodOrders.addAll(boxOrders);
     double sum = foodOrders.stream().mapToDouble(o -> Double.parseDouble(o.getPrice())).sum();
-    ScanResult scanResult = new ScanResult("food", String.valueOf(year), foodOrders.size(), sum);
+    ScanResult scanResult = new ScanResult("food", String.valueOf(year), foodOrders.size(), sum, sum / 12, "OK");
     LOG.info("Result: {}", scanResult);
     return scanResult;
   }

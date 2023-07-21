@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -47,8 +48,15 @@ public class FoodService {
     Long maxResults = 10000L;
 
     // Read messages
-    ListMessagesResponse listMessagesResponse = gmail.users().messages().list(user).setQ(queries.get(source).formatted(year)).setMaxResults(maxResults).execute();
+    ListMessagesResponse listMessagesResponse = gmail.users().messages().list(user)
+        .setQ(queries.get(source).formatted(year))
+        .setMaxResults(maxResults)
+        .execute();
     List<Message> messages = listMessagesResponse.getMessages();
+    if (messages == null) {
+      LOG.info("No {} order emails found for {}", source, year);
+      return Collections.emptyList();
+    }
     LOG.info("Got {} {} order emails", messages.size(), source);
 
     List<Message> detailedMessageList = this.populateDetailedMessageList(messages, user);
@@ -61,9 +69,11 @@ public class FoodService {
       }
       String dataString = new String(data, StandardCharsets.UTF_8);
       FoodOrder foodOrder = htmlParser.parserOrder(dataString, source);
-      foodOrders.add(foodOrder);
+      if (foodOrder != null) {
+        foodOrders.add(foodOrder);
+      }
     }
-
+    LOG.info("Parsed {} {} orders", foodOrders.size(), source);
     return foodOrders;
   }
 
