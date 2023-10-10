@@ -24,7 +24,7 @@
     <google-oauth-client-jetty.version>1.33.2</google-oauth-client-jetty.version>
     <google-api-services-gmail.version>v1-rev20220404-1.32.1</google-api-services-gmail.version>
     <google-api-services-calendar.version>v3-rev20220422-1.32.1</google-api-services-calendar.version>
-    <jsoup.version>1.14.3</jsoup.version>
+    <jsoup.version>1.15.3</jsoup.version>
   </properties>
 
   <dependencies>
