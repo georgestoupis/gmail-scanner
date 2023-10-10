@@ -8,8 +8,7 @@ on:
 
 jobs:
   setup-java-job:
-    runs-on: 
-      group: ubuntu-runners
+    runs-on: ubuntu-latest
     steps:
       - name: Setup Java JDK
         uses: actions/setup-java@v3.13.0
