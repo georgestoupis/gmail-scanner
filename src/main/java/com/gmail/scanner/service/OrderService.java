@@ -68,9 +68,9 @@ public abstract class OrderService {
         data = detailedMessage.getPayload().getParts().get(0).getBody().decodeData();
       }
       String dataString = new String(data, StandardCharsets.UTF_8);
-      Order order = (Order) htmlParser.parserOrder(dataString, source);
+      Order order = htmlParser.parserOrder(dataString, source);
       if (order != null) {
-        order.setOrderDate(LocalDateTime.ofInstant(Instant.ofEpochMilli(detailedMessage.getInternalDate()), ZoneId.systemDefault()));
+        order.setDate(LocalDateTime.ofInstant(Instant.ofEpochMilli(detailedMessage.getInternalDate()), ZoneId.systemDefault()));
         orders.add(order);
       }
     }

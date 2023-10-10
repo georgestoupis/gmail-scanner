@@ -6,15 +6,15 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Order {
 
-  private LocalDateTime orderDate;
+  private LocalDateTime date;
   private String price;
 
-  public LocalDateTime getOrderDate() {
-    return orderDate;
+  public LocalDateTime getDate() {
+    return date;
   }
 
-  public void setOrderDate(LocalDateTime orderDate) {
-    this.orderDate = orderDate;
+  public void setDate(LocalDateTime date) {
+    this.date = date;
   }
 
   public String getPrice() {
