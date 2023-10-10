@@ -1,5 +1,20 @@
----
-- name: Setup Java JDK
-  uses: actions/setup-java@v3.13.0
-  with:
-    java-version: 17
+name: 'Setup Java'
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  setup-java-job:
+    runs-on: 
+      group: ubuntu-runners
+    steps:
+      - name: Setup Java JDK
+        uses: actions/setup-java@v3.13.0
+        with:
+          # The Java version to set up. Takes a whole or semver Java version. See examples of supported syntax in README file
+          java-version: 17
+      
+  
