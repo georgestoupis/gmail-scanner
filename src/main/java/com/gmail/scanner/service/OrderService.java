@@ -6,7 +6,6 @@ import com.gmail.scanner.security.OAuth2AuthorizedClientProvider;
 import com.gmail.scanner.service.model.Order;
 import com.gmail.scanner.service.model.Source;
 import com.gmail.scanner.service.parser.EmailData;
-import com.gmail.scanner.service.parser.EmailParser;
 import com.google.api.client.googleapis.batch.BatchRequest;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
@@ -30,7 +29,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeTypeUtils;
 
 public class OrderService {
@@ -43,12 +41,10 @@ public class OrderService {
   private static final String GMAIL_USER = "me";
 
   private final Gmail gmail;
-  private final EmailParser emailParser;
 
-  public OrderService(GoogleServiceProvider googleServiceProvider, OAuth2AuthorizedClientProvider clientProvider, EmailParser emailParser)
+  public OrderService(GoogleServiceProvider googleServiceProvider, OAuth2AuthorizedClientProvider clientProvider)
       throws IOException, GeneralSecurityException {
     this.gmail = (Gmail) googleServiceProvider.getService(GoogleServiceType.GMAIL, clientProvider.getClient());
-    this.emailParser = emailParser;
   }
 
   public Map<Source, List<Order>> getOrderMap(int year, Map<Source, String> queries) throws IOException {
@@ -83,11 +79,11 @@ public class OrderService {
     for (Message detailedMessage : detailedMessageList) {
       byte[] data = detailedMessage.getPayload().getBody().decodeData();
       String payload = data == null ? null : new String(data, StandardCharsets.UTF_8);
-      String plain = this.convertMessagePartToString(detailedMessage, MimeTypeUtils.TEXT_PLAIN_VALUE);
-      String html = this.convertMessagePartToString(detailedMessage, MimeTypeUtils.TEXT_HTML_VALUE);
+      String plain = this.findMessagePartWithMimeType(detailedMessage.getPayload().getParts(), MimeTypeUtils.TEXT_PLAIN_VALUE);
+      String html = this.findMessagePartWithMimeType(detailedMessage.getPayload().getParts(), MimeTypeUtils.TEXT_HTML_VALUE);
       EmailData emailData = new EmailData(payload, plain, html);
 
-      Order order = emailParser.parserOrder(emailData, source);
+      Order order = source.getParser().parseOrder(emailData);
       if (order != null) {
         order.setSource(source);
         order.setDate(LocalDateTime.ofInstant(Instant.ofEpochMilli(detailedMessage.getInternalDate()), ZoneId.systemDefault()));
@@ -127,15 +123,19 @@ public class OrderService {
     return detailedMessageList;
   }
 
-  private String convertMessagePartToString(Message message, String mimeType) {
-    if (CollectionUtils.isEmpty(message.getPayload().getParts())) {
+  private String findMessagePartWithMimeType(List<MessagePart> parts, String mimeType) {
+    if (parts == null) {
       return null;
     }
-    MessagePart messagePart = message.getPayload().getParts().stream()
-        .filter(part -> mimeType.equalsIgnoreCase(part.getMimeType()))
-        .findFirst()
-        .orElse(null);
-    return messagePart == null ? null : new String(messagePart.getBody().decodeData(), StandardCharsets.UTF_8);
+    for (MessagePart part : parts) {
+      if (mimeType.equalsIgnoreCase(part.getMimeType())) {
+        return new String(part.getBody().decodeData(), StandardCharsets.UTF_8);
+      }
+      if (part.getParts() != null) {
+        return findMessagePartWithMimeType(part.getParts(), mimeType);
+      }
+    }
+    return null;
   }
 
 }

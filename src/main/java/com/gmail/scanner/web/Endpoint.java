@@ -8,7 +8,6 @@ import com.gmail.scanner.security.OAuth2AuthorizedClientProvider;
 import com.gmail.scanner.service.OrderService;
 import com.gmail.scanner.service.model.Order;
 import com.gmail.scanner.service.model.Source;
-import com.gmail.scanner.service.parser.EmailParser;
 import com.gmail.scanner.service.queries.FoodQueries;
 import com.gmail.scanner.service.queries.GameQueries;
 import java.io.IOException;
@@ -28,16 +27,13 @@ public class Endpoint {
 
   private final GoogleServiceProvider googleServiceProvider;
   private final OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider;
-  private final EmailParser emailParser;
   private final ScanResultMapper mapper;
 
   public Endpoint(GoogleServiceProvider googleServiceProvider,
       OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider,
-      EmailParser emailParser,
       ScanResultMapper mapper) {
     this.googleServiceProvider = googleServiceProvider;
     this.oauth2AuthorizedClientProvider = oauth2AuthorizedClientProvider;
-    this.emailParser = emailParser;
     this.mapper = mapper;
   }
 
@@ -50,7 +46,7 @@ public class Endpoint {
       default -> throw new UnsupportedGroupException("Unsupported group: " + group);
     };
 
-    OrderService orderService = new OrderService(googleServiceProvider, oauth2AuthorizedClientProvider, emailParser);
+    OrderService orderService = new OrderService(googleServiceProvider, oauth2AuthorizedClientProvider);
     Map<Source, List<Order>> orders = orderService.getOrderMap(year, queries);
     return this.mapper.fromOrderMap(group, year, orders);
   }
