@@ -24,5 +24,4 @@ public class WoltOrderParser implements OrderParser {
     }
     return foodOrder;
   }
-
 }

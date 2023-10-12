@@ -10,7 +10,5 @@ public final class GameQueries {
       Source.STEAM, "from:noreply@steampowered.com AND subject:Thank you for your Steam purchase");
 
   private GameQueries() {
-
   }
-
 }

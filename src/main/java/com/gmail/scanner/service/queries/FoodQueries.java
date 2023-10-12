@@ -10,8 +10,6 @@ public final class FoodQueries {
       Source.WOLT, "from:info@wolt.com AND subject:Your order’s confirmed",
       Source.BOX, "from:support@box.gr AND subject:Η παραγγελία σας στο κατάστημα");
 
-
   private FoodQueries() {
   }
-
 }

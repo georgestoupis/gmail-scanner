@@ -1,5 +1,6 @@
 package com.gmail.scanner.web;
 
+import com.gmail.scanner.exception.UnsupportedGroupException;
 import com.gmail.scanner.google.GoogleServiceProvider;
 import com.gmail.scanner.mapper.ScanResultMapper;
 import com.gmail.scanner.model.ScanResult;
@@ -30,27 +31,27 @@ public class Endpoint {
   private final EmailParser emailParser;
   private final ScanResultMapper mapper;
 
-
-  public Endpoint(GoogleServiceProvider googleServiceProvider, OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider, EmailParser emailParser,
-      ScanResultMapper mapper) throws GeneralSecurityException, IOException {
+  public Endpoint(GoogleServiceProvider googleServiceProvider,
+      OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider,
+      EmailParser emailParser,
+      ScanResultMapper mapper) {
     this.googleServiceProvider = googleServiceProvider;
     this.oauth2AuthorizedClientProvider = oauth2AuthorizedClientProvider;
     this.emailParser = emailParser;
     this.mapper = mapper;
   }
 
-  @GetMapping("/scan/food/{year}")
-  public ScanResult food(@PathVariable int year) throws IOException, GeneralSecurityException {
-    OrderService orderService = new OrderService(googleServiceProvider, oauth2AuthorizedClientProvider, emailParser);
-    Map<Source, List<Order>> foodOrders = orderService.getOrderMap(year, FoodQueries.SOURCE_QUERIES_MAP);
-    return this.mapper.fromOrderMap("food", year, foodOrders);
-  }
+  @GetMapping("/scan/{group}/{year}")
+  public ScanResult scan(@PathVariable String group, @PathVariable int year) throws IOException, GeneralSecurityException {
 
-  @GetMapping("/scan/games/{year}")
-  public ScanResult games(@PathVariable int year) throws IOException, GeneralSecurityException {
-    OrderService orderService = new OrderService(googleServiceProvider, oauth2AuthorizedClientProvider, emailParser);
-    Map<Source, List<Order>> orders = orderService.getOrderMap(year, GameQueries.SOURCE_QUERIES_MAP);
-    return this.mapper.fromOrderMap("games", year, orders);
-  }
+    Map<Source, String> queries = switch (group) {
+      case "food" -> FoodQueries.SOURCE_QUERIES_MAP;
+      case "games" -> GameQueries.SOURCE_QUERIES_MAP;
+      default -> throw new UnsupportedGroupException("Unsupported group: " + group);
+    };
 
+    OrderService orderService = new OrderService(googleServiceProvider, oauth2AuthorizedClientProvider, emailParser);
+    Map<Source, List<Order>> orders = orderService.getOrderMap(year, queries);
+    return this.mapper.fromOrderMap(group, year, orders);
+  }
 }

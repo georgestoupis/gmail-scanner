@@ -30,5 +30,4 @@ public class RiotOrderParser implements OrderParser {
     }
     return order;
   }
-
 }
