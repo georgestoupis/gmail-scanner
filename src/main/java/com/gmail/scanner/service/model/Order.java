@@ -6,8 +6,17 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Order {
 
+  private Source source;
   private LocalDateTime date;
   private String price;
+
+  public Source getSource() {
+    return source;
+  }
+
+  public void setSource(Source source) {
+    this.source = source;
+  }
 
   public LocalDateTime getDate() {
     return date;

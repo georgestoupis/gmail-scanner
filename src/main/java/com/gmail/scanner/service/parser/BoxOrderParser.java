@@ -12,8 +12,8 @@ public class BoxOrderParser implements OrderParser {
   private static final String BOX_PRICE_LABEL = "Τελικό ποσό";
 
   @Override
-  public FoodOrder parseOrder(String emailBody) {
-    Document document = Jsoup.parse(emailBody);
+  public FoodOrder parseOrder(EmailData emailData) {
+    Document document = Jsoup.parse(emailData.payload());
     List<String> texts = document.getElementsByTag("td").eachText();
     FoodOrder foodOrder = new FoodOrder();
     for (int i = 0; i < texts.size() - 1; i++) {

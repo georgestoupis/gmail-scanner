@@ -19,8 +19,8 @@ public class EfoodOrderParser implements OrderParser {
   }
 
   @Override
-  public FoodOrder parseOrder(String emailBody) {
-    Document document = Jsoup.parse(emailBody);
+  public FoodOrder parseOrder(EmailData emailData) {
+    Document document = Jsoup.parse(emailData.payload() != null ? emailData.payload() : emailData.html());
     Elements scripts = document.getElementsByTag("script");
     Optional<String> orderJson = scripts.stream().map(s -> s.childNodes().stream().findFirst().get().toString()).findFirst();
     try {

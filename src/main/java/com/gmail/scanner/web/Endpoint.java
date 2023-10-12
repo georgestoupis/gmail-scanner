@@ -4,13 +4,16 @@ import com.gmail.scanner.google.GoogleServiceProvider;
 import com.gmail.scanner.mapper.ScanResultMapper;
 import com.gmail.scanner.model.ScanResult;
 import com.gmail.scanner.security.OAuth2AuthorizedClientProvider;
-import com.gmail.scanner.service.FoodService;
-import com.gmail.scanner.service.GamesService;
+import com.gmail.scanner.service.OrderService;
 import com.gmail.scanner.service.model.Order;
-import com.gmail.scanner.service.parser.HtmlParser;
+import com.gmail.scanner.service.model.Source;
+import com.gmail.scanner.service.parser.EmailParser;
+import com.gmail.scanner.service.queries.FoodQueries;
+import com.gmail.scanner.service.queries.GameQueries;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,29 +27,30 @@ public class Endpoint {
 
   private final GoogleServiceProvider googleServiceProvider;
   private final OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider;
-  private final HtmlParser htmlParser;
+  private final EmailParser emailParser;
   private final ScanResultMapper mapper;
 
-  public Endpoint(GoogleServiceProvider googleServiceProvider, OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider, HtmlParser htmlParser,
-      ScanResultMapper mapper) {
+
+  public Endpoint(GoogleServiceProvider googleServiceProvider, OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider, EmailParser emailParser,
+      ScanResultMapper mapper) throws GeneralSecurityException, IOException {
     this.googleServiceProvider = googleServiceProvider;
     this.oauth2AuthorizedClientProvider = oauth2AuthorizedClientProvider;
-    this.htmlParser = htmlParser;
+    this.emailParser = emailParser;
     this.mapper = mapper;
   }
 
   @GetMapping("/scan/food/{year}")
   public ScanResult food(@PathVariable int year) throws IOException, GeneralSecurityException {
-    FoodService foodService = new FoodService(googleServiceProvider, oauth2AuthorizedClientProvider, htmlParser);
-    List<Order> foodOrders = foodService.getAllOrders(year);
-    return this.mapper.fromOrderList("food", year, foodOrders);
+    OrderService orderService = new OrderService(googleServiceProvider, oauth2AuthorizedClientProvider, emailParser);
+    Map<Source, List<Order>> foodOrders = orderService.getOrderMap(year, FoodQueries.SOURCE_QUERIES_MAP);
+    return this.mapper.fromOrderMap("food", year, foodOrders);
   }
 
   @GetMapping("/scan/games/{year}")
   public ScanResult games(@PathVariable int year) throws IOException, GeneralSecurityException {
-    GamesService gamesService = new GamesService(googleServiceProvider, oauth2AuthorizedClientProvider, htmlParser);
-    List<Order> orders = gamesService.getAllOrders(year);
-    return this.mapper.fromOrderList("games", year, orders);
+    OrderService orderService = new OrderService(googleServiceProvider, oauth2AuthorizedClientProvider, emailParser);
+    Map<Source, List<Order>> orders = orderService.getOrderMap(year, GameQueries.SOURCE_QUERIES_MAP);
+    return this.mapper.fromOrderMap("games", year, orders);
   }
 
 }

@@ -25,6 +25,7 @@
     <google-api-services-gmail.version>v1-rev20220404-1.32.1</google-api-services-gmail.version>
     <google-api-services-calendar.version>v3-rev20220422-1.32.1</google-api-services-calendar.version>
     <jsoup.version>1.14.3</jsoup.version>
+    <commons-lang3.version>3.13.0</commons-lang3.version>
   </properties>
 
   <dependencies>
@@ -70,6 +71,11 @@
       <groupId>org.jsoup</groupId>
       <artifactId>jsoup</artifactId>
       <version>${jsoup.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons-lang3.version}</version>
     </dependency>
 
     <!-- Test Dependencies -->

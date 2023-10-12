@@ -5,7 +5,8 @@ import com.gmail.scanner.google.GoogleServiceType;
 import com.gmail.scanner.security.OAuth2AuthorizedClientProvider;
 import com.gmail.scanner.service.model.Order;
 import com.gmail.scanner.service.model.Source;
-import com.gmail.scanner.service.parser.HtmlParser;
+import com.gmail.scanner.service.parser.EmailData;
+import com.gmail.scanner.service.parser.EmailParser;
 import com.google.api.client.googleapis.batch.BatchRequest;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
@@ -13,6 +14,7 @@ import com.google.api.client.http.HttpHeaders;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
+import com.google.api.services.gmail.model.MessagePart;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -22,11 +24,18 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.MimeTypeUtils;
 
-public abstract class OrderService {
+public class OrderService {
+
+  public static final String PERIOD_QUERY_STRING = " AND before:%1$d/12/31 AND after:%1$d/01/01";
 
   private static final Logger LOG = LoggerFactory.getLogger(OrderService.class);
   private static final long GMAIL_MAX_RESULTS = 10000L;
@@ -34,17 +43,26 @@ public abstract class OrderService {
   private static final String GMAIL_USER = "me";
 
   private final Gmail gmail;
-  private final HtmlParser htmlParser;
+  private final EmailParser emailParser;
 
-  OrderService(GoogleServiceProvider googleServiceProvider, OAuth2AuthorizedClientProvider clientProvider, HtmlParser htmlParser)
+  public OrderService(GoogleServiceProvider googleServiceProvider, OAuth2AuthorizedClientProvider clientProvider, EmailParser emailParser)
       throws IOException, GeneralSecurityException {
     this.gmail = (Gmail) googleServiceProvider.getService(GoogleServiceType.GMAIL, clientProvider.getClient());
-    this.htmlParser = htmlParser;
+    this.emailParser = emailParser;
   }
 
-  abstract List<Order> getAllOrders(int year) throws IOException;
+  public Map<Source, List<Order>> getOrderMap(int year, Map<Source, String> queries) throws IOException {
+    Map<Source, List<Order>> orders = new EnumMap<>(Source.class);
+    for (Entry<Source, String> entry : queries.entrySet()) {
+      orders.put(entry.getKey(), this.getOrdersFromSource(year, entry.getKey(), entry.getValue()));
+    }
+    return orders;
+  }
 
-  List<Order> getOrdersFromSource(int year, Source source, String query) throws IOException {
+  private List<Order> getOrdersFromSource(int year, Source source, String query) throws IOException {
+
+    //Append period postfix to query
+    query += PERIOD_QUERY_STRING;
 
     // Read messages
     ListMessagesResponse listMessagesResponse = gmail.users().messages()
@@ -64,12 +82,14 @@ public abstract class OrderService {
     List<Order> orders = new ArrayList<>();
     for (Message detailedMessage : detailedMessageList) {
       byte[] data = detailedMessage.getPayload().getBody().decodeData();
-      if (data == null) {
-        data = detailedMessage.getPayload().getParts().get(0).getBody().decodeData();
-      }
-      String dataString = new String(data, StandardCharsets.UTF_8);
-      Order order = htmlParser.parserOrder(dataString, source);
+      String payload = data == null ? null : new String(data, StandardCharsets.UTF_8);
+      String plain = this.convertMessagePartToString(detailedMessage, MimeTypeUtils.TEXT_PLAIN_VALUE);
+      String html = this.convertMessagePartToString(detailedMessage, MimeTypeUtils.TEXT_HTML_VALUE);
+      EmailData emailData = new EmailData(payload, plain, html);
+
+      Order order = emailParser.parserOrder(emailData, source);
       if (order != null) {
+        order.setSource(source);
         order.setDate(LocalDateTime.ofInstant(Instant.ofEpochMilli(detailedMessage.getInternalDate()), ZoneId.systemDefault()));
         orders.add(order);
       }
@@ -105,6 +125,17 @@ public abstract class OrderService {
     }
 
     return detailedMessageList;
+  }
+
+  private String convertMessagePartToString(Message message, String mimeType) {
+    if (CollectionUtils.isEmpty(message.getPayload().getParts())) {
+      return null;
+    }
+    MessagePart messagePart = message.getPayload().getParts().stream()
+        .filter(part -> mimeType.equalsIgnoreCase(part.getMimeType()))
+        .findFirst()
+        .orElse(null);
+    return messagePart == null ? null : new String(messagePart.getBody().decodeData(), StandardCharsets.UTF_8);
   }
 
 }

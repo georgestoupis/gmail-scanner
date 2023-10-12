@@ -13,20 +13,16 @@ public class WoltOrderParser implements OrderParser {
   private static final String WOLT_PRICE_LABEL = "Total in EUR";
 
   @Override
-  public FoodOrder parseOrder(String emailBody) {
-    Document document = Jsoup.parse(emailBody);
+  public FoodOrder parseOrder(EmailData emailData) {
+    Document document = Jsoup.parse(emailData.html());
     List<String> texts = document.getElementsByTag("td").eachText().stream().map(s -> CharMatcher.ascii().retainFrom(s)).toList();
     FoodOrder foodOrder = new FoodOrder();
     for (int i = 0; i < texts.size() - 1; i++) {
-      if (texts.get(i).contains(WOLT_PRICE_LABEL) && this.foundPrice(foodOrder, texts.get(i + 1))) {
+      if (texts.get(i).contains(WOLT_PRICE_LABEL) && this.foundTotalPrice(foodOrder, texts.get(i + 1))) {
         foodOrder.setPrice(this.normalizePrice(texts.get(i + 1)));
       }
     }
     return foodOrder;
-  }
-
-  private boolean foundPrice(FoodOrder foodOrder, String priceText) {
-    return foodOrder.getPrice() == null || Double.parseDouble(foodOrder.getPrice()) < Double.parseDouble(priceText);
   }
 
 }
