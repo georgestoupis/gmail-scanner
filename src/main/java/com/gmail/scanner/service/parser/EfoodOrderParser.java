@@ -7,14 +7,16 @@ import java.util.Optional;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class EfoodOrderParser implements OrderParser {
 
-  @Autowired
-  private ObjectMapper mapper;
+  private final ObjectMapper mapper;
+
+  public EfoodOrderParser(ObjectMapper mapper) {
+    this.mapper = mapper;
+  }
 
   @Override
   public FoodOrder parseOrder(EmailData emailData) {
