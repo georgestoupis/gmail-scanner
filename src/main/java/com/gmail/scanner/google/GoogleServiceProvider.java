@@ -6,7 +6,6 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClient;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.services.calendar.Calendar;
 import com.google.api.services.gmail.Gmail;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -25,12 +24,9 @@ public class GoogleServiceProvider {
    */
   private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 
-  public AbstractGoogleJsonClient getService(GoogleServiceType serviceType, OAuth2AuthorizedClient client) throws GeneralSecurityException, IOException {
+  public AbstractGoogleJsonClient getService(OAuth2AuthorizedClient client) throws GeneralSecurityException, IOException {
 
-    return switch (serviceType) {
-      case GMAIL -> new Gmail.Builder(GoogleNetHttpTransport.newTrustedTransport(), JSON_FACTORY, getCredentials(client)).setApplicationName(APPLICATION_NAME).build();
-      case CALENDAR -> new Calendar.Builder(GoogleNetHttpTransport.newTrustedTransport(), JSON_FACTORY, getCredentials(client)).setApplicationName(APPLICATION_NAME).build();
-    };
+    return new Gmail.Builder(GoogleNetHttpTransport.newTrustedTransport(), JSON_FACTORY, getCredentials(client)).setApplicationName(APPLICATION_NAME).build();
   }
 
   private Credential getCredentials(final OAuth2AuthorizedClient client) {

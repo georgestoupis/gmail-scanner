@@ -1,7 +1,6 @@
 package com.gmail.scanner.service;
 
 import com.gmail.scanner.google.GoogleServiceProvider;
-import com.gmail.scanner.google.GoogleServiceType;
 import com.gmail.scanner.security.OAuth2AuthorizedClientProvider;
 import com.gmail.scanner.service.model.Order;
 import com.gmail.scanner.service.model.Source;
@@ -44,7 +43,7 @@ public class OrderService {
 
   public OrderService(GoogleServiceProvider googleServiceProvider, OAuth2AuthorizedClientProvider clientProvider)
       throws IOException, GeneralSecurityException {
-    this.gmail = (Gmail) googleServiceProvider.getService(GoogleServiceType.GMAIL, clientProvider.getClient());
+    this.gmail = (Gmail) googleServiceProvider.getService(clientProvider.getClient());
   }
 
   public Map<Source, List<Order>> getOrderMap(int year, Map<Source, String> queries) throws IOException {
