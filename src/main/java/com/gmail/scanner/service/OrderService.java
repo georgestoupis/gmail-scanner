@@ -36,7 +36,7 @@ public class OrderService {
 
   private static final Logger LOG = LoggerFactory.getLogger(OrderService.class);
   private static final long GMAIL_MAX_RESULTS = 10000L;
-  private static final int GMAIL_MESSAGE_BATCH_SIZE = 100;
+  private static final int GMAIL_MESSAGE_BATCH_SIZE = 20;
   private static final String GMAIL_USER = "me";
 
   private final Gmail gmail;
@@ -83,7 +83,7 @@ public class OrderService {
       EmailData emailData = new EmailData(payload, plain, html);
 
       Order order = source.getParser().parseOrder(emailData);
-      if (order != null) {
+      if (order != null && order.getPrice() != null) {
         order.setSource(source);
         order.setDate(LocalDateTime.ofInstant(Instant.ofEpochMilli(detailedMessage.getInternalDate()), ZoneId.systemDefault()));
         orders.add(order);
@@ -98,7 +98,7 @@ public class OrderService {
     List<Message> detailedMessageList = new ArrayList<>();
 
     //A callback for the batch request that adds a detailed msg to the list
-    final JsonBatchCallback<Message> callback = new JsonBatchCallback<Message>() {
+    final JsonBatchCallback<Message> callback = new JsonBatchCallback<>() {
       public void onSuccess(Message message, HttpHeaders responseHeaders) {
         detailedMessageList.add(message);
       }
@@ -116,6 +116,7 @@ public class OrderService {
       for (Message message : list) {
         gmail.users().messages().get(GMAIL_USER, message.getId()).queue(batchRequest, callback);
       }
+      LOG.debug("Sending GMAIL API request (batch of: {})", list.size());
       batchRequest.execute();
     }
 
