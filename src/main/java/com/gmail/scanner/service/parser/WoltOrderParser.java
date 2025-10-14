@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class WoltOrderParser implements OrderParser {
 
-  private static final String WOLT_PRICE_LABEL = "Total in EUR";
+  private static final String WOLT_PRICE_LABEL = "EUR";
 
   @Override
   public FoodOrder parseOrder(EmailData emailData) {
@@ -18,7 +18,7 @@ public class WoltOrderParser implements OrderParser {
     List<String> texts = document.getElementsByTag("td").eachText().stream().map(s -> CharMatcher.ascii().retainFrom(s)).toList();
     FoodOrder foodOrder = new FoodOrder();
     for (int i = 0; i < texts.size() - 1; i++) {
-      if (texts.get(i).contains(WOLT_PRICE_LABEL) && this.foundTotalPrice(foodOrder, texts.get(i + 1))) {
+      if (texts.get(i).contains(WOLT_PRICE_LABEL) && this.foundTotalPrice(foodOrder, texts.get(i + 1).replace(",","."))) {
         foodOrder.setPrice(this.normalizePrice(texts.get(i + 1)));
       }
     }
