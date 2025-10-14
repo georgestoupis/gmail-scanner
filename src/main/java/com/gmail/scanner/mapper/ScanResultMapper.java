@@ -15,8 +15,19 @@ public class ScanResultMapper {
   public ScanResult fromOrderMap(String group, int year, Map<Source, List<Order>> orders) {
     List<SourceResult> sourceResultList = new ArrayList<>();
     orders.forEach(
-        (source, list) -> sourceResultList.add(new SourceResult(source, list.size(), list.stream().mapToDouble(o -> Double.parseDouble(o.getPrice())).sum())));
-    return new ScanResult(group, String.valueOf(year), sourceResultList, sourceResultList.stream().mapToDouble(SourceResult::sum).sum(), "Shame on you.");
-  }
+        (source, list) -> sourceResultList.add(
+            new SourceResult(source,
+                list.size(),
+                list.stream().mapToDouble(o -> Double.parseDouble(o.getPrice())).sum())));
 
+    double totalSum = sourceResultList.stream().mapToDouble(SourceResult::sum).sum();
+    double avgMonth = totalSum / 12;
+
+    return new ScanResult(group,
+        String.valueOf(year),
+        sourceResultList,
+        totalSum,
+        avgMonth,
+        "Shame on you.");
+  }
 }
