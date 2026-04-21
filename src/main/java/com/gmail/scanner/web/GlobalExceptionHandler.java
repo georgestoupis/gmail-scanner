@@ -11,7 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler({UnsupportedGroupException.class})
-  public ResponseEntity<Object> handleStudentNotFoundException(Exception exception) {
+  public ResponseEntity<Object> handleUnsupportedGroupException(Exception exception) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
   }
 }
