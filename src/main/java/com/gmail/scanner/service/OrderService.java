@@ -32,12 +32,11 @@ import org.springframework.util.MimeTypeUtils;
 
 public class OrderService {
 
-  public static final String PERIOD_QUERY_STRING = " AND before:%1$d/12/31 AND after:%1$d/01/01";
-
   private static final Logger LOG = LoggerFactory.getLogger(OrderService.class);
   private static final long GMAIL_PAGE_MAX_RESULTS = 500L;
   private static final int GMAIL_MESSAGE_BATCH_SIZE = 20;
   private static final String GMAIL_USER = "me";
+  private static final String PERIOD_QUERY_STRING = " AND before:%1$d/12/31 AND after:%1$d/01/01";
 
   private final Gmail gmail;
 
