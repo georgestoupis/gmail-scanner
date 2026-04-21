@@ -4,9 +4,7 @@ import com.gmail.scanner.service.model.FoodOrder;
 import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.springframework.stereotype.Component;
 
-@Component
 public class BoxOrderParser implements OrderParser {
 
   private static final String BOX_PRICE_LABEL = "Τελικό ποσό";

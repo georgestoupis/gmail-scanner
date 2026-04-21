@@ -5,9 +5,7 @@ import com.google.common.base.CharMatcher;
 import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.springframework.stereotype.Component;
 
-@Component
 public class SteamOrderParser implements OrderParser {
 
   private static final String PRICE_PREFIX_1 = "Your total for this transaction:";

@@ -2,9 +2,7 @@ package com.gmail.scanner.service.parser;
 
 import com.gmail.scanner.service.model.Order;
 import java.util.List;
-import org.springframework.stereotype.Component;
 
-@Component
 public class RiotOrderParser implements OrderParser {
 
   private static final String PRICE_PREFIX_2023 = "Total:";
