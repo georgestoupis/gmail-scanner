@@ -35,7 +35,7 @@ public class OrderService {
   public static final String PERIOD_QUERY_STRING = " AND before:%1$d/12/31 AND after:%1$d/01/01";
 
   private static final Logger LOG = LoggerFactory.getLogger(OrderService.class);
-  private static final long GMAIL_MAX_RESULTS = 10000L;
+  private static final long GMAIL_PAGE_MAX_RESULTS = 500L;
   private static final int GMAIL_MESSAGE_BATCH_SIZE = 20;
   private static final String GMAIL_USER = "me";
 
@@ -58,15 +58,8 @@ public class OrderService {
 
     //Append period postfix to query
     query += PERIOD_QUERY_STRING;
-
-    // Read messages
-    ListMessagesResponse listMessagesResponse = gmail.users().messages()
-        .list(GMAIL_USER)
-        .setQ(query.formatted(year))
-        .setMaxResults(GMAIL_MAX_RESULTS)
-        .execute();
-    List<Message> messages = listMessagesResponse.getMessages();
-    if (messages == null) {
+    List<Message> messages = this.loadMessagesPaginated(year, query);
+    if (messages.isEmpty()) {
       LOG.info("No {} order emails found for {}", source, year);
       return Collections.emptyList();
     }
@@ -93,6 +86,26 @@ public class OrderService {
     return orders;
   }
 
+  private List<Message> loadMessagesPaginated(int year, String query) throws IOException {
+    List<Message> messages = new ArrayList<>();
+    String pageToken = null;
+    boolean hasNextPage = true;
+    while (hasNextPage) {
+      ListMessagesResponse resp = gmail.users().messages()
+          .list(GMAIL_USER)
+          .setQ(query.formatted(year))
+          .setMaxResults(GMAIL_PAGE_MAX_RESULTS)
+          .setPageToken(pageToken)
+          .execute();
+      if (resp.getMessages() != null) {
+        messages.addAll(resp.getMessages());
+      }
+      pageToken = resp.getNextPageToken();
+      hasNextPage = pageToken != null;
+    }
+    return messages;
+  }
+
   private List<Message> populateDetailedMessageList(List<Message> messages) throws IOException {
 
     List<Message> detailedMessageList = new ArrayList<>();
@@ -104,7 +117,6 @@ public class OrderService {
       }
 
       public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) {
-        // do what you want if error occurs
         LOG.warn("Couldn't get detailed message: {}", e.getMessage());
       }
     };
@@ -132,7 +144,10 @@ public class OrderService {
         return new String(part.getBody().decodeData(), StandardCharsets.UTF_8);
       }
       if (part.getParts() != null) {
-        return findMessagePartWithMimeType(part.getParts(), mimeType);
+        String result = findMessagePartWithMimeType(part.getParts(), mimeType);
+        if (result != null) {
+          return result;
+        }
       }
     }
     return null;
