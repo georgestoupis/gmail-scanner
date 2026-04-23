@@ -77,9 +77,17 @@
     .header-inner {
       max-width: 1100px;
       margin: 0 auto;
+      position: relative;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
+    }
+
+    .logo-block { text-align: center; }
+
+    .theme-toggle {
+      position: absolute;
+      right: 0;
     }
 
     .logo-block h1 {
@@ -101,7 +109,6 @@
       transition: color 0.35s;
     }
 
-    /* ---- THEME TOGGLE ---- */
     .theme-toggle {
       background: var(--surface);
       border: 1.5px solid var(--border);
@@ -451,7 +458,7 @@
   <div class="header-inner">
     <div class="logo-block">
       <h1>Gmail<span>Scanner</span></h1>
-      <p> Figures out how much you've spent on food and games and then shames you for it.</p>
+      <p>Figures out how much you've spent on food and games and then shames you for it</p>
     </div>
     <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode">
       <span class="toggle-icon moon">🌙</span>
