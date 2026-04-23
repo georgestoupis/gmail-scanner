@@ -7,6 +7,7 @@ import com.gmail.scanner.service.parser.KinguinOrderParser;
 import com.gmail.scanner.service.parser.OrderParser;
 import com.gmail.scanner.service.parser.PlaystationOrderParser;
 import com.gmail.scanner.service.parser.RiotOrderParser;
+import com.gmail.scanner.service.parser.SkroutzOrderParser;
 import com.gmail.scanner.service.parser.SteamOrderParser;
 import com.gmail.scanner.service.parser.WoltOrderParser;
 
@@ -17,7 +18,8 @@ public enum Source {
   STEAM(new SteamOrderParser()),
   KINGUIN(new KinguinOrderParser()),
   RIOT(new RiotOrderParser()),
-  PLAYSTATION(new PlaystationOrderParser());
+  PLAYSTATION(new PlaystationOrderParser()),
+  SKROUTZ(new SkroutzOrderParser());
 
   final OrderParser parser;
 

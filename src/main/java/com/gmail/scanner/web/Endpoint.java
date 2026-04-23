@@ -10,12 +10,11 @@ import com.gmail.scanner.service.model.Order;
 import com.gmail.scanner.service.model.Source;
 import com.gmail.scanner.service.queries.FoodQueries;
 import com.gmail.scanner.service.queries.GameQueries;
+import com.gmail.scanner.service.queries.ShoppingQueries;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,8 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class Endpoint {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Endpoint.class);
 
   private final GoogleServiceProvider googleServiceProvider;
   private final OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider;
@@ -41,7 +38,9 @@ public class Endpoint {
 
   @GetMapping("/api/me")
   public ResponseEntity<?> me(OAuth2AuthenticationToken auth) {
-    if (auth == null) return ResponseEntity.status(401).build();
+    if (auth == null) {
+      return ResponseEntity.status(401).build();
+    }
     return ResponseEntity.ok(Map.of("email", auth.getPrincipal().getAttribute("email")));
   }
 
@@ -51,8 +50,13 @@ public class Endpoint {
     Map<Source, String> queries = switch (group) {
       case "food" -> FoodQueries.SOURCE_QUERIES_MAP;
       case "games" -> GameQueries.SOURCE_QUERIES_MAP;
+      case "shopping" -> ShoppingQueries.SOURCE_QUERIES_MAP;
       default -> throw new UnsupportedGroupException("Unsupported group: " + group);
     };
+
+    if (year < 2019) {
+      throw new IllegalArgumentException("Invalid year: " + year);
+    }
 
     OrderService orderService = new OrderService(googleServiceProvider, oauth2AuthorizedClientProvider);
     Map<Source, List<Order>> orders = orderService.getOrderMap(year, queries);

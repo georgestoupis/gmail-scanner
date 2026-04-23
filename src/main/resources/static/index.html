@@ -491,11 +491,12 @@
         <select id="group-select">
           <option value="food">🍕 Food</option>
           <option value="games">🎮 Games</option>
+          <option value="shopping">🛒 Shopping</option>
         </select>
       </div>
       <div>
         <label for="year-input">Year</label><br/>
-        <input type="number" id="year-input" value="2025" min="2015" max="2030" />
+        <input type="number" id="year-input" min="2019" max="2030" />
       </div>
       <div style="align-self:flex-end">
         <button class="btn-scan" id="scan-btn" onclick="runScan()">Run Scan</button>
@@ -550,6 +551,9 @@
 </main>
 
 <script>
+  // ---- Set year input to current year ----
+  document.getElementById('year-input').value = new Date().getFullYear();
+
   let chartInstance = null;
 
   // =============================================
