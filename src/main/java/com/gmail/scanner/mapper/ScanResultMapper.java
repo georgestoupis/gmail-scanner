@@ -29,7 +29,7 @@ public class ScanResultMapper {
 
     BigDecimal avgPerMonth = totalSum.divide(BigDecimal.valueOf(monthsToDate), RoundingMode.HALF_UP);
 
-    return new ScanResult(group, String.valueOf(year), sourceResultList, totalSum, avgPerMonth, "Shame on you.");
+    return new ScanResult(group, String.valueOf(year), sourceResultList, totalSum, avgPerMonth, "Worth it.");
   }
 
   private SourceResult createSourceResultFromArgs(Source source, List<Order> orders) {

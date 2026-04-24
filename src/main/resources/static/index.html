@@ -303,7 +303,7 @@
     .stat-value--fit { white-space: nowrap; display: block; }
 
     /* ---- SHAME BANNER ---- */
-    .shame-banner {
+    .result-banner {
       border: 1.5px solid var(--border);
       background: var(--surface);
       border-radius: 16px;
@@ -317,9 +317,9 @@
       transition: background 0.35s, border-color 0.35s;
     }
 
-    .shame-icon { font-size: 1.8rem; flex-shrink: 0; }
+    .result-icon { font-size: 1.8rem; flex-shrink: 0; }
 
-    .shame-text {
+    .result-text {
       font-size: 0.95rem;
       font-weight: 800;
       color: var(--accent2);
@@ -509,9 +509,9 @@
     <div id="results">
       <div class="stats-row" id="stats-row"></div>
 
-      <div class="shame-banner">
-        <div class="shame-icon">😬</div>
-        <div class="shame-text" id="shame-text"></div>
+      <div class="result-banner">
+        <div class="result-icon">👏</div>
+        <div class="result-text" id="result-text"></div>
       </div>
 
       <div class="bottom-grid">
@@ -675,11 +675,10 @@
     document.getElementById('results').style.display = 'block';
 
     const totalOrders = data.sources.reduce((s, r) => s + r.orders, 0);
-    const isFood      = data.group === 'food';
 
     // Stat cards — data-emoji drives the watermark via CSS ::after
     document.getElementById('stats-row').innerHTML = `
-      <div class="stat-card" data-emoji="${isFood ? '💸' : '🕹️'}">
+      <div class="stat-card" data-emoji="💸">
         <div class="stat-label">Total Spent</div>
         <div class="stat-value">${fmt(data.totalSum)}</div>
       </div>
@@ -687,7 +686,7 @@
         <div class="stat-label">Monthly Avg</div>
         <div class="stat-value">${fmt(data.avgMonth)}</div>
       </div>
-      <div class="stat-card" data-emoji="${isFood ? '🛵' : '🛒'}">
+      <div class="stat-card" data-emoji="🛒">
         <div class="stat-label">Total Orders</div>
         <div class="stat-value">${totalOrders}</div>
       </div>
@@ -697,7 +696,7 @@
       </div>
     `;
 
-    document.getElementById('shame-text').textContent =
+    document.getElementById('result-text').textContent =
         data.msg || `You spent ${fmt(data.totalSum)} on ${data.group} in ${data.period}.`;
 
     requestAnimationFrame(() => {
