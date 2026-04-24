@@ -1,15 +1,16 @@
 package com.gmail.scanner.service.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gmail.scanner.service.parser.BoxOrderParser;
-import com.gmail.scanner.service.parser.EfoodOrderParser;
-import com.gmail.scanner.service.parser.KinguinOrderParser;
+import com.gmail.scanner.service.parser.food.BoxOrderParser;
+import com.gmail.scanner.service.parser.food.EfoodOrderParser;
+import com.gmail.scanner.service.parser.games.KinguinOrderParser;
 import com.gmail.scanner.service.parser.OrderParser;
-import com.gmail.scanner.service.parser.PlaystationOrderParser;
-import com.gmail.scanner.service.parser.RiotOrderParser;
-import com.gmail.scanner.service.parser.SkroutzOrderParser;
-import com.gmail.scanner.service.parser.SteamOrderParser;
-import com.gmail.scanner.service.parser.WoltOrderParser;
+import com.gmail.scanner.service.parser.games.PlaystationOrderParser;
+import com.gmail.scanner.service.parser.games.RiotOrderParser;
+import com.gmail.scanner.service.parser.shopping.SkroutzOrderParser;
+import com.gmail.scanner.service.parser.games.SteamOrderParser;
+import com.gmail.scanner.service.parser.travel.UberOrderParser;
+import com.gmail.scanner.service.parser.food.WoltOrderParser;
 
 public enum Source {
   EFOOD(new EfoodOrderParser(new ObjectMapper())),
@@ -19,7 +20,8 @@ public enum Source {
   KINGUIN(new KinguinOrderParser()),
   RIOT(new RiotOrderParser()),
   PLAYSTATION(new PlaystationOrderParser()),
-  SKROUTZ(new SkroutzOrderParser());
+  SKROUTZ(new SkroutzOrderParser()),
+  UBER(new UberOrderParser());
 
   final OrderParser parser;
 

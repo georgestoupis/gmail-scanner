@@ -56,13 +56,13 @@ public class OrderService {
   private List<Order> getOrdersFromSource(int year, Source source, String query) throws IOException {
 
     //Append period postfix to query
-    query += PERIOD_QUERY_STRING;
-    List<Message> messages = this.loadMessagesPaginated(year, query);
+    query += PERIOD_QUERY_STRING.formatted(year);
+    List<Message> messages = this.loadMessagesPaginated(query);
     if (messages.isEmpty()) {
       LOG.info("No {} order emails found for {}", source, year);
       return Collections.emptyList();
     }
-    LOG.info("Got {} {} order emails", messages.size(), source);
+    LOG.info("Got {} {} order emails for {}", messages.size(), source, year);
 
     List<Message> detailedMessageList = this.populateDetailedMessageList(messages);
 
@@ -74,25 +74,24 @@ public class OrderService {
       String html = this.findMessagePartWithMimeType(detailedMessage.getPayload().getParts(), MimeTypeUtils.TEXT_HTML_VALUE);
       EmailData emailData = new EmailData(payload, plain, html);
 
-      Order order = source.getParser().parseOrder(emailData);
+      LocalDateTime orderDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(detailedMessage.getInternalDate()), ZoneId.systemDefault());
+      Order order = source.getParser().parseOrder(emailData, source, orderDateTime);
       if (order != null && order.getPrice() != null) {
-        order.setSource(source);
-        order.setDate(LocalDateTime.ofInstant(Instant.ofEpochMilli(detailedMessage.getInternalDate()), ZoneId.systemDefault()));
         orders.add(order);
       }
     }
-    LOG.info("Parsed {} {} orders", orders.size(), source);
+    LOG.info("Parsed {} {} orders for {}", orders.size(), source, year);
     return orders;
   }
 
-  private List<Message> loadMessagesPaginated(int year, String query) throws IOException {
+  private List<Message> loadMessagesPaginated(String query) throws IOException {
     List<Message> messages = new ArrayList<>();
     String pageToken = null;
     boolean hasNextPage = true;
     while (hasNextPage) {
       ListMessagesResponse resp = gmail.users().messages()
           .list(GMAIL_USER)
-          .setQ(query.formatted(year))
+          .setQ(query)
           .setMaxResults(GMAIL_PAGE_MAX_RESULTS)
           .setPageToken(pageToken)
           .execute();

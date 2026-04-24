@@ -11,6 +11,7 @@ import com.gmail.scanner.service.model.Source;
 import com.gmail.scanner.service.queries.FoodQueries;
 import com.gmail.scanner.service.queries.GameQueries;
 import com.gmail.scanner.service.queries.ShoppingQueries;
+import com.gmail.scanner.service.queries.TravelQueries;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -51,6 +52,7 @@ public class Endpoint {
       case "food" -> FoodQueries.SOURCE_QUERIES_MAP;
       case "games" -> GameQueries.SOURCE_QUERIES_MAP;
       case "shopping" -> ShoppingQueries.SOURCE_QUERIES_MAP;
+      case "travel" -> TravelQueries.SOURCE_QUERIES_MAP;
       default -> throw new UnsupportedGroupException("Unsupported group: " + group);
     };
 

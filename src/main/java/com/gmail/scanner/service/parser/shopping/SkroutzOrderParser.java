@@ -1,6 +1,10 @@
-package com.gmail.scanner.service.parser;
+package com.gmail.scanner.service.parser.shopping;
 
 import com.gmail.scanner.service.model.Order;
+import com.gmail.scanner.service.model.Source;
+import com.gmail.scanner.service.parser.EmailData;
+import com.gmail.scanner.service.parser.OrderParser;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class SkroutzOrderParser implements OrderParser {
@@ -11,7 +15,7 @@ public class SkroutzOrderParser implements OrderParser {
   }
 
   @Override
-  public Order parseOrder(EmailData emailData) {
+  public Order parseOrder(EmailData emailData, Source source, LocalDateTime orderDateTime) {
     Order order = new Order();
     List<String> lines = emailData.plain().lines().filter(x -> !x.isBlank()).toList();
     String price = null;
@@ -26,6 +30,8 @@ public class SkroutzOrderParser implements OrderParser {
         break;
       }
     }
+    order.setSource(source);
+    order.setDate(orderDateTime);
     return order;
   }
 }

@@ -1,8 +1,12 @@
-package com.gmail.scanner.service.parser;
+package com.gmail.scanner.service.parser.food;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gmail.scanner.service.model.FoodOrder;
+import com.gmail.scanner.service.model.Source;
+import com.gmail.scanner.service.parser.EmailData;
+import com.gmail.scanner.service.parser.OrderParser;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import org.jsoup.Jsoup;
@@ -19,7 +23,7 @@ public class EfoodOrderParser implements OrderParser {
   }
 
   @Override
-  public FoodOrder parseOrder(EmailData emailData) {
+  public FoodOrder parseOrder(EmailData emailData, Source source, LocalDateTime orderDateTime) {
     Document document = Jsoup.parse(emailData.payload() != null ? emailData.payload() : emailData.html());
     Elements scripts = document.getElementsByTag("script");
     Optional<String> orderJson = scripts.stream()
@@ -31,7 +35,13 @@ public class EfoodOrderParser implements OrderParser {
         .filter(Objects::nonNull)
         .findFirst();
     try {
-      return orderJson.isEmpty() ? null : mapper.readValue(orderJson.get(), FoodOrder.class);
+      if (orderJson.isEmpty()) {
+        return null;
+      }
+      FoodOrder foodOrder = mapper.readValue(orderJson.get(), FoodOrder.class);
+      foodOrder.setSource(source);
+      foodOrder.setDate(orderDateTime);
+      return foodOrder;
     } catch (JsonProcessingException jsonProcessingException) {
       return null;
     }
