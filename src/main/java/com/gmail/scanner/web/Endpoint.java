@@ -14,6 +14,7 @@ import com.gmail.scanner.service.queries.ShoppingQueries;
 import com.gmail.scanner.service.queries.TravelQueries;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
@@ -56,7 +57,7 @@ public class Endpoint {
       default -> throw new UnsupportedGroupException("Unsupported group: " + group);
     };
 
-    if (year < 2019) {
+    if (year < 2020 || year > LocalDate.now().getYear()) {
       throw new IllegalArgumentException("Invalid year: " + year);
     }
 

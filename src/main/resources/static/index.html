@@ -1,32 +1,38 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gmail Scanner</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Rubik:wght@400;500;700;900&display=swap"
+      rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     /* =============================================
        DARK THEME (default) — deep purple-tinted
     ============================================= */
     :root,
     [data-theme="dark"] {
-      --bg:             #1a1625;
-      --surface:        #221d30;
-      --border:         #332a47;
-      --card:           #1e1929;
-      --accent:         #ff5757;
-      --accent2:        #ffd166;
-      --teal:           #06d6a0;
-      --purple:         #c084fc;
-      --text:           #ede8f5;
-      --muted:          #7a6e96;
-      --chart-border:   #1e1929;
-      --tooltip-bg:     #221d30;
+      --bg: #1a1625;
+      --surface: #221d30;
+      --border: #332a47;
+      --card: #1e1929;
+      --accent: #ff5757;
+      --accent2: #ffd166;
+      --teal: #06d6a0;
+      --purple: #c084fc;
+      --text: #ede8f5;
+      --muted: #7a6e96;
+      --chart-border: #1e1929;
+      --tooltip-bg: #221d30;
       --tooltip-border: #332a47;
       --font-display: 'Nunito', sans-serif;
       --font-num: 'Rubik', sans-serif;
@@ -36,18 +42,18 @@
        LIGHT THEME — warm cream
     ============================================= */
     [data-theme="light"] {
-      --bg:             #fdf8f0;
-      --surface:        #fff8ec;
-      --border:         #e8dfc8;
-      --card:           #ffffff;
-      --accent:         #e63030;
-      --accent2:        #c07800;
-      --teal:           #00a878;
-      --purple:         #9333ea;
-      --text:           #1e1530;
-      --muted:          #9e8fbf;
-      --chart-border:   #ffffff;
-      --tooltip-bg:     #ffffff;
+      --bg: #fdf8f0;
+      --surface: #fff8ec;
+      --border: #e8dfc8;
+      --card: #ffffff;
+      --accent: #e63030;
+      --accent2: #c07800;
+      --teal: #00a878;
+      --purple: #9333ea;
+      --text: #1e1530;
+      --muted: #9e8fbf;
+      --chart-border: #ffffff;
+      --tooltip-bg: #ffffff;
       --tooltip-border: #e8dfc8;
     }
 
@@ -62,9 +68,12 @@
 
     body::before {
       content: '';
-      position: fixed; inset: 0;
+      position: fixed;
+      inset: 0;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-      pointer-events: none; z-index: 999; opacity: 0.35;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.35;
     }
 
     /* ---- HEADER ---- */
@@ -83,7 +92,9 @@
       justify-content: center;
     }
 
-    .logo-block { text-align: center; }
+    .logo-block {
+      text-align: center;
+    }
 
     .theme-toggle {
       position: absolute;
@@ -97,7 +108,10 @@
       line-height: 1;
     }
 
-    .logo-block h1 span { color: var(--accent); transition: color 0.35s; }
+    .logo-block h1 span {
+      color: var(--accent);
+      transition: color 0.35s;
+    }
 
     .logo-block p {
       font-size: 0.67rem;
@@ -124,11 +138,13 @@
     .theme-toggle::after {
       content: '';
       position: absolute;
-      top: 4px; left: 4px;
-      width: 20px; height: 20px;
+      top: 4px;
+      left: 4px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       background: var(--text);
-      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), background 0.35s;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.35s;
     }
 
     [data-theme="light"] .theme-toggle::after {
@@ -137,16 +153,30 @@
 
     .toggle-icon {
       position: absolute;
-      top: 50%; transform: translateY(-50%);
+      top: 50%;
+      transform: translateY(-50%);
       font-size: 0.7rem;
       pointer-events: none;
       transition: opacity 0.2s;
       line-height: 1;
     }
-    .toggle-icon.moon { left: 7px; }
-    .toggle-icon.sun  { right: 6px; opacity: 0; }
-    [data-theme="light"] .toggle-icon.moon { opacity: 0; }
-    [data-theme="light"] .toggle-icon.sun  { opacity: 1; }
+
+    .toggle-icon.moon {
+      left: 7px;
+    }
+
+    .toggle-icon.sun {
+      right: 6px;
+      opacity: 0;
+    }
+
+    [data-theme="light"] .toggle-icon.moon {
+      opacity: 0;
+    }
+
+    [data-theme="light"] .toggle-icon.sun {
+      opacity: 1;
+    }
 
     /* ---- MAIN ---- */
     main {
@@ -188,8 +218,13 @@
       -webkit-appearance: none;
     }
 
-    select:focus, input[type="number"]:focus { border-color: var(--accent); }
-    input[type="number"] { width: 100px; }
+    select:focus, input[type="number"]:focus {
+      border-color: var(--accent);
+    }
+
+    input[type="number"] {
+      width: 100px;
+    }
 
     .btn-scan {
       background: var(--accent);
@@ -208,33 +243,54 @@
       overflow: hidden;
     }
 
-    .btn-scan:hover { filter: brightness(1.12); }
-    .btn-scan:active { transform: scale(0.97); }
+    .btn-scan:hover {
+      filter: brightness(1.12);
+    }
+
+    .btn-scan:active {
+      transform: scale(0.97);
+    }
 
     .btn-scan.loading::after {
       content: '';
-      position: absolute; bottom: 0; left: 0;
-      height: 3px; width: 0%;
-      background: rgba(255,255,255,0.5);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      width: 0%;
+      background: rgba(255, 255, 255, 0.5);
       animation: loadbar 1.5s ease-in-out infinite;
     }
 
     @keyframes loadbar {
-      0%   { width: 0%;  left: 0; }
-      50%  { width: 80%; left: 10%; }
-      100% { width: 0%;  left: 100%; }
+      0% {
+        width: 0%;
+        left: 0;
+      }
+      50% {
+        width: 80%;
+        left: 10%;
+      }
+      100% {
+        width: 0%;
+        left: 100%;
+      }
     }
 
     .error-msg {
-      font-size: 0.84rem; font-weight: 700;
+      font-size: 0.84rem;
+      font-weight: 700;
       color: var(--accent);
       padding: 0.8rem 1.2rem;
       border: 1.5px solid var(--accent);
       border-radius: 10px;
-      display: none; margin-bottom: 1.5rem;
+      display: none;
+      margin-bottom: 1.5rem;
     }
 
-    #results { display: none; }
+    #results {
+      display: none;
+    }
 
     /* ---- STAT CARDS ---- */
     .stats-row {
@@ -246,8 +302,14 @@
     }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .stat-card {
@@ -263,19 +325,34 @@
     .stat-card::before {
       content: '';
       position: absolute;
-      top: 0; left: 0; right: 0;
+      top: 0;
+      left: 0;
+      right: 0;
       height: 4px;
       border-radius: 16px 16px 0 0;
     }
-    .stat-card:nth-child(1)::before { background: var(--accent); }
-    .stat-card:nth-child(2)::before { background: var(--accent2); }
-    .stat-card:nth-child(3)::before { background: var(--teal); }
-    .stat-card:nth-child(4)::before { background: var(--purple); }
+
+    .stat-card:nth-child(1)::before {
+      background: var(--accent);
+    }
+
+    .stat-card:nth-child(2)::before {
+      background: var(--accent2);
+    }
+
+    .stat-card:nth-child(3)::before {
+      background: var(--teal);
+    }
+
+    .stat-card:nth-child(4)::before {
+      background: var(--purple);
+    }
 
     .stat-card::after {
       content: attr(data-emoji);
       position: absolute;
-      bottom: -6px; right: 8px;
+      bottom: -6px;
+      right: 8px;
       font-size: 3.2rem;
       opacity: 0.08;
       pointer-events: none;
@@ -300,7 +377,10 @@
       line-height: 1;
     }
 
-    .stat-value--fit { white-space: nowrap; display: block; }
+    .stat-value--fit {
+      white-space: nowrap;
+      display: block;
+    }
 
     /* ---- SHAME BANNER ---- */
     .result-banner {
@@ -317,7 +397,10 @@
       transition: background 0.35s, border-color 0.35s;
     }
 
-    .result-icon { font-size: 1.8rem; flex-shrink: 0; }
+    .result-icon {
+      font-size: 1.8rem;
+      flex-shrink: 0;
+    }
 
     .result-text {
       font-size: 0.95rem;
@@ -337,7 +420,9 @@
     }
 
     @media (max-width: 720px) {
-      .bottom-grid { grid-template-columns: 1fr; }
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .panel {
@@ -358,13 +443,17 @@
     }
 
     .panel-title {
-      font-size: 0.68rem; font-weight: 800;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--muted); transition: color 0.35s;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: color 0.35s;
     }
 
     .panel-badge {
-      font-size: 0.67rem; font-weight: 800;
+      font-size: 0.67rem;
+      font-weight: 800;
       background: var(--surface);
       border: 1px solid var(--border);
       padding: 0.18rem 0.65rem;
@@ -373,13 +462,19 @@
       transition: background 0.35s, border-color 0.35s, color 0.35s;
     }
 
-    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+    }
 
     th {
       text-align: left;
       padding: 0.65rem 1.4rem;
-      font-size: 0.62rem; font-weight: 800;
-      letter-spacing: 0.1em; text-transform: uppercase;
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
       color: var(--muted);
       border-bottom: 1px solid var(--border);
       transition: color 0.35s, border-color 0.35s;
@@ -392,22 +487,39 @@
       transition: background 0.15s, border-color 0.35s;
     }
 
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: var(--surface); }
+    tr:last-child td {
+      border-bottom: none;
+    }
 
-    .source-name { font-weight: 800; text-transform: capitalize; }
+    tr:hover td {
+      background: var(--surface);
+    }
 
-    .bar-wrap { display: flex; align-items: center; gap: 0.6rem; }
+    .source-name {
+      font-weight: 800;
+      text-transform: capitalize;
+    }
+
+    .bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
 
     .bar-track {
-      flex: 1; height: 4px;
-      background: var(--border); border-radius: 4px; overflow: hidden;
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
       transition: background 0.35s;
     }
 
     .bar-fill {
-      height: 100%; background: var(--accent); border-radius: 4px;
-      transition: width 0.7s cubic-bezier(0.16,1,0.3,1), background 0.35s;
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1), background 0.35s;
     }
 
     .orders-badge {
@@ -416,40 +528,88 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 20px;
-      font-size: 0.72rem; font-weight: 800;
+      font-size: 0.72rem;
+      font-weight: 800;
       transition: background 0.35s, border-color 0.35s;
     }
 
-    .sum-cell { font-family: var(--font-num); font-weight: 700; text-align: right; }
+    .sum-cell {
+      font-family: var(--font-num);
+      font-weight: 700;
+      text-align: right;
+    }
 
-    .chart-wrap { position: relative; height: 260px; padding: 1rem; }
+    .chart-wrap {
+      position: relative;
+      height: 260px;
+      padding: 1rem;
+    }
 
-    #empty { text-align: center; padding: 5rem 2rem; }
-    #empty .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.2; }
-    #empty p { font-weight: 700; color: var(--muted); font-size: 0.9rem; transition: color 0.35s; }
+    #empty {
+      text-align: center;
+      padding: 5rem 2rem;
+    }
 
-    .auth-area { text-align: center; padding: 4rem 2rem; }
+    #empty .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.2;
+    }
+
+    #empty p {
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.35s;
+    }
+
+    .auth-area {
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+
     .auth-area p {
-      font-size: 0.76rem; font-weight: 800;
-      letter-spacing: 0.09em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 1.5rem;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
     }
 
     .btn-auth {
-      display: inline-flex; align-items: center; gap: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
       background: var(--surface);
       border: 1.5px solid var(--border);
       color: var(--text);
-      font-family: var(--font-display); font-weight: 800; font-size: 0.9rem;
-      padding: 0.9rem 2rem; cursor: pointer;
-      border-radius: 10px; text-decoration: none;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.9rem;
+      padding: 0.9rem 2rem;
+      cursor: pointer;
+      border-radius: 10px;
+      text-decoration: none;
       transition: border-color 0.2s, background 0.35s, color 0.35s;
     }
-    .btn-auth:hover { border-color: var(--accent); }
-    .google-icon { width: 18px; height: 18px; }
 
-    #auth-section { display: none; }
-    #scan-section { display: none; }
+    .btn-auth:hover {
+      border-color: var(--accent);
+    }
+
+    .google-icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    #auth-section {
+      display: none;
+    }
+
+    #scan-section {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -474,10 +634,18 @@
       <p>Connect your Gmail to get started</p>
       <a href="/oauth2/authorization/google" class="btn-auth">
         <svg class="google-icon" viewBox="0 0 24 24" fill="none">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          <path
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              fill="#4285F4"/>
+          <path
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              fill="#34A853"/>
+          <path
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+              fill="#FBBC05"/>
+          <path
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              fill="#EA4335"/>
         </svg>
         Connect with Google
       </a>
@@ -497,7 +665,7 @@
       </div>
       <div>
         <label for="year-input">Year</label><br/>
-        <input type="number" id="year-input" min="2019" max="2030" />
+        <input type="number" id="year-input"/>
       </div>
       <div style="align-self:flex-end">
         <button class="btn-scan" id="scan-btn" onclick="runScan()">Run Scan</button>
@@ -553,14 +721,17 @@
 
 <script>
   // ---- Set year input to current year ----
-  document.getElementById('year-input').value = new Date().getFullYear();
+  var currentYear = new Date().getFullYear();
+  document.getElementById('year-input').value = currentYear;
+  document.getElementById('year-input').setAttribute("max", currentYear);
+  document.getElementById('year-input').setAttribute("min", 2020);
 
   let chartInstance = null;
 
   // =============================================
   // THEME TOGGLE
   // =============================================
-  const html      = document.documentElement;
+  const html = document.documentElement;
   const toggleBtn = document.getElementById('theme-toggle');
 
   // On first load: respect OS preference, then remember user choice
@@ -576,18 +747,20 @@
     const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     html.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
-    if (chartInstance) updateChartTheme();
+    if (chartInstance) {
+      updateChartTheme();
+    }
   });
 
   // Read live CSS variables so chart colours always match the theme
   function getThemeColors() {
     const s = getComputedStyle(html);
     return {
-      border:        s.getPropertyValue('--chart-border').trim(),
-      tooltip:       s.getPropertyValue('--tooltip-bg').trim(),
+      border: s.getPropertyValue('--chart-border').trim(),
+      tooltip: s.getPropertyValue('--tooltip-bg').trim(),
       tooltipBorder: s.getPropertyValue('--tooltip-border').trim(),
-      muted:         s.getPropertyValue('--muted').trim(),
-      text:          s.getPropertyValue('--text').trim(),
+      muted: s.getPropertyValue('--muted').trim(),
+      text: s.getPropertyValue('--text').trim(),
     };
   }
 
@@ -595,9 +768,9 @@
     const c = getThemeColors();
     chartInstance.data.datasets[0].borderColor = c.border;
     chartInstance.options.plugins.legend.labels.color = c.muted;
-    chartInstance.options.plugins.tooltip.backgroundColor   = c.tooltip;
-    chartInstance.options.plugins.tooltip.borderColor       = c.tooltipBorder;
-    chartInstance.options.plugins.tooltip.titleColor        = c.text;
+    chartInstance.options.plugins.tooltip.backgroundColor = c.tooltip;
+    chartInstance.options.plugins.tooltip.borderColor = c.tooltipBorder;
+    chartInstance.options.plugins.tooltip.titleColor = c.text;
     chartInstance.update();
   }
 
@@ -607,7 +780,11 @@
   async function init() {
     try {
       const res = await fetch('/api/me');
-      if (res.ok) showScanSection(); else showAuthSection();
+      if (res.ok) {
+        showScanSection();
+      } else {
+        showAuthSection();
+      }
     } catch {
       showScanSection(); // fallback: Spring Security handles it
     }
@@ -628,8 +805,8 @@
   // =============================================
   async function runScan() {
     const group = document.getElementById('group-select').value;
-    const year  = document.getElementById('year-input').value;
-    const btn   = document.getElementById('scan-btn');
+    const year = document.getElementById('year-input').value;
+    const btn = document.getElementById('scan-btn');
     const errEl = document.getElementById('error-msg');
 
     errEl.style.display = 'none';
@@ -640,7 +817,10 @@
     try {
       const res = await fetch(`/scan/${group}/${year}`);
       if (!res.ok) {
-        if (res.status === 401 || res.status === 403) { showAuthSection(); return; }
+        if (res.status === 401 || res.status === 403) {
+          showAuthSection();
+          return;
+        }
         throw new Error(`Server error: ${res.status}`);
       }
       renderResults(await res.json());
@@ -657,7 +837,8 @@
   }
 
   const fmt = n =>
-      new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(n);
+      new Intl.NumberFormat('en-US',
+          {style: 'currency', currency: 'EUR', maximumFractionDigits: 2}).format(n);
 
   // Shrink font until text fits its container
   function fitText(el, maxPx = 35) {
@@ -671,7 +852,7 @@
   // RENDER
   // =============================================
   function renderResults(data) {
-    document.getElementById('empty').style.display   = 'none';
+    document.getElementById('empty').style.display = 'none';
     document.getElementById('results').style.display = 'block';
 
     const totalOrders = data.sources.reduce((s, r) => s + r.orders, 0);
@@ -701,7 +882,9 @@
 
     requestAnimationFrame(() => {
       const el = document.querySelector('.stat-value--fit');
-      if (el) fitText(el);
+      if (el) {
+        fitText(el);
+      }
     });
 
     // Sources table
@@ -709,8 +892,8 @@
     document.getElementById('sources-tbody').innerHTML = data.sources
     .sort((a, b) => b.sum - a.sum)
     .map(s => {
-      const pct  = maxSum > 0 ? (s.sum / maxSum * 100).toFixed(1) : 0;
-      const name = (s.source?.name || s.source || 'Unknown').toLowerCase().replace(/_/g,' ');
+      const pct = maxSum > 0 ? (s.sum / maxSum * 100).toFixed(1) : 0;
+      const name = (s.source?.name || s.source || 'Unknown').toLowerCase().replace(/_/g, ' ');
       return `
           <tr>
             <td><span class="source-name">${name}</span></td>
@@ -731,13 +914,18 @@
   }
 
   function renderChart(sources) {
-    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+    if (chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
 
-    const sorted  = [...sources].sort((a, b) => b.sum - a.sum);
-    const labels  = sorted.map(s => (s.source?.name || s.source || 'Unknown').toLowerCase().replace(/_/g,' '));
-    const values  = sorted.map(s => s.sum);
-    const palette = ['#ff5757','#ffd166','#06d6a0','#c084fc','#38bdf8','#fb923c','#f472b6','#a3e635'];
-    const c       = getThemeColors();
+    const sorted = [...sources].sort((a, b) => b.sum - a.sum);
+    const labels = sorted.map(
+        s => (s.source?.name || s.source || 'Unknown').toLowerCase().replace(/_/g, ' '));
+    const values = sorted.map(s => s.sum);
+    const palette = ['#ff5757', '#ffd166', '#06d6a0', '#c084fc', '#38bdf8', '#fb923c', '#f472b6',
+      '#a3e635'];
+    const c = getThemeColors();
 
     chartInstance = new Chart(document.getElementById('spend-chart').getContext('2d'), {
       type: 'doughnut',
@@ -760,7 +948,7 @@
             position: 'bottom',
             labels: {
               color: c.muted,
-              font: { family: "'Nunito', sans-serif", weight: '700', size: 12 },
+              font: {family: "'Nunito', sans-serif", weight: '700', size: 12},
               padding: 16, boxWidth: 10, boxHeight: 10,
             }
           },
@@ -770,10 +958,11 @@
             borderWidth: 1,
             titleColor: c.text,
             bodyColor: c.muted,
-            titleFont: { family: "'Nunito', sans-serif", weight: 'bold' },
-            bodyFont:  { family: "'Rubik', sans-serif", size: 13 },
+            titleFont: {family: "'Nunito', sans-serif", weight: 'bold'},
+            bodyFont: {family: "'Rubik', sans-serif", size: 13},
             callbacks: {
-              label: ctx => ` ${new Intl.NumberFormat('en-US',{style:'currency',currency:'EUR'}).format(ctx.parsed)}`
+              label: ctx => ` ${new Intl.NumberFormat('en-US',
+                  {style: 'currency', currency: 'EUR'}).format(ctx.parsed)}`
             }
           }
         }
