@@ -1,5 +1,6 @@
 package com.gmail.scanner.service;
 
+import com.gmail.scanner.exception.InsufficientScopeException;
 import com.gmail.scanner.google.GoogleServiceProvider;
 import com.gmail.scanner.security.OAuth2AuthorizedClientProvider;
 import com.gmail.scanner.service.model.Order;
@@ -8,6 +9,7 @@ import com.gmail.scanner.service.parser.EmailData;
 import com.google.api.client.googleapis.batch.BatchRequest;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.ListMessagesResponse;
@@ -45,12 +47,21 @@ public class OrderService {
     this.gmail = (Gmail) googleServiceProvider.getService(clientProvider.getClient());
   }
 
-  public Map<Source, List<Order>> getOrderMap(int year, Map<Source, String> queries) throws IOException {
+  public Map<Source, List<Order>> getOrderMap(int year, Map<Source, String> queries) {
     Map<Source, List<Order>> orders = new EnumMap<>(Source.class);
-    for (Entry<Source, String> entry : queries.entrySet()) {
-      orders.put(entry.getKey(), this.getOrdersFromSource(year, entry.getKey(), entry.getValue()));
+    try {
+      for (Entry<Source, String> entry : queries.entrySet()) {
+        orders.put(entry.getKey(), this.getOrdersFromSource(year, entry.getKey(), entry.getValue()));
+      }
+      return orders;
+    } catch (GoogleJsonResponseException ex) {
+      if (ex.getStatusCode() == 403) {
+        throw new InsufficientScopeException(ex.getMessage());
+      }
+      throw new RuntimeException(ex);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-    return orders;
   }
 
   private List<Order> getOrdersFromSource(int year, Source source, String query) throws IOException {

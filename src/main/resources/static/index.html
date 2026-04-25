@@ -818,7 +818,13 @@
       const res = await fetch(`/scan/${group}/${year}`);
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
-          showAuthSection();
+          const body = await res.json().catch(() => ({}));
+          if (body.error === 'insufficient_scope') {
+            // Redirect to OAuth with prompt=consent to force scope re-grant
+            window.location.href = '/oauth2/authorization/google?prompt=consent';
+          } else {
+            showAuthSection();
+          }
           return;
         }
         throw new Error(`Server error: ${res.status}`);
