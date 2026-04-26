@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
@@ -89,6 +90,8 @@ public class OrderService {
       Order order = source.getParser().parseOrder(emailData, source, orderDateTime);
       if (order != null && order.getPrice() != null) {
         orders.add(order);
+      } else {
+        LOG.error("{} {} Unparsed EmailData: {}", source, year, this.logBase64(emailData.toString()));
       }
     }
     LOG.info("Parsed {} {} orders for {}", orders.size(), source, year);
@@ -160,6 +163,16 @@ public class OrderService {
       }
     }
     return null;
+  }
+
+  public String logBase64(String string) {
+    return Base64.getEncoder().encodeToString(shrinkString(string).getBytes(StandardCharsets.UTF_8));
+  }
+
+  private static String shrinkString(String string) {
+    return string == null
+        ? null
+        : string.lines().map(String::trim).filter(x -> !x.isBlank()).reduce("", String::concat);
   }
 
 }
