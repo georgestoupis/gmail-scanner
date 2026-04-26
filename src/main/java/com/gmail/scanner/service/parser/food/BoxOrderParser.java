@@ -1,5 +1,7 @@
 package com.gmail.scanner.service.parser.food;
 
+import static com.gmail.scanner.service.parser.ParserUtils.normalizePrice;
+
 import com.gmail.scanner.service.model.FoodOrder;
 import com.gmail.scanner.service.model.Source;
 import com.gmail.scanner.service.parser.EmailData;
@@ -21,7 +23,7 @@ public class BoxOrderParser implements OrderParser {
     for (int i = 0; i < texts.size() - 1; i++) {
       if (texts.get(i).equals(BOX_PRICE_LABEL)) {
         String price = texts.get(i + 1);
-        foodOrder.setPrice(this.normalizePrice(price));
+        foodOrder.setPrice(normalizePrice(price));
       }
     }
     foodOrder.setSource(source);

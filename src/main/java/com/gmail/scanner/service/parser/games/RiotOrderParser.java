@@ -1,5 +1,7 @@
 package com.gmail.scanner.service.parser.games;
 
+import static com.gmail.scanner.service.parser.ParserUtils.normalizePrice;
+
 import com.gmail.scanner.service.model.Order;
 import com.gmail.scanner.service.model.Source;
 import com.gmail.scanner.service.parser.EmailData;
@@ -20,9 +22,9 @@ public class RiotOrderParser implements OrderParser {
     for (int i = 0; i < lines.size() - 1; i++) {
       String line = lines.get(i);
       if (line.contains(PRICE_PREFIX_2023)) {
-        price = this.normalizePrice(lines.get(i + 1));
+        price = normalizePrice(lines.get(i + 1));
       } else if (line.contains(PRICE_PREFIX_2022)) {
-        price = this.normalizePrice(line.replace(PRICE_PREFIX_2022, ""));
+        price = normalizePrice(line, PRICE_PREFIX_2022);
       }
 
       if (price != null) {

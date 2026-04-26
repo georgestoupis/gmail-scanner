@@ -1,5 +1,7 @@
 package com.gmail.scanner.service.parser.shopping;
 
+import static com.gmail.scanner.service.parser.ParserUtils.normalizePrice;
+
 import com.gmail.scanner.service.model.Order;
 import com.gmail.scanner.service.model.Source;
 import com.gmail.scanner.service.parser.EmailData;
@@ -22,7 +24,7 @@ public class SkroutzOrderParser implements OrderParser {
     for (int i = 0; i < lines.size() - 1; i++) {
       String line = lines.get(i);
       if (line.contains(PRICE_PREFIX)) {
-        price = this.normalizePrice(lines.get(i + 1));
+        price = normalizePrice(lines.get(i + 1));
       }
 
       if (price != null) {
