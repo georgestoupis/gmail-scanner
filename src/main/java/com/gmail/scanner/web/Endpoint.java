@@ -12,8 +12,7 @@ import com.gmail.scanner.service.queries.FoodQueries;
 import com.gmail.scanner.service.queries.GameQueries;
 import com.gmail.scanner.service.queries.ShoppingQueries;
 import com.gmail.scanner.service.queries.TravelQueries;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
+import com.google.api.services.gmail.Gmail;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -28,13 +27,16 @@ public class Endpoint {
 
   private final GoogleServiceProvider googleServiceProvider;
   private final OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider;
+  private final OrderService orderService;
   private final ScanResultMapper mapper;
 
   public Endpoint(GoogleServiceProvider googleServiceProvider,
       OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider,
+      OrderService orderService,
       ScanResultMapper mapper) {
     this.googleServiceProvider = googleServiceProvider;
     this.oauth2AuthorizedClientProvider = oauth2AuthorizedClientProvider;
+    this.orderService = orderService;
     this.mapper = mapper;
   }
 
@@ -47,7 +49,10 @@ public class Endpoint {
   }
 
   @GetMapping("/scan/{group}/{year}")
-  public ScanResult scan(@PathVariable String group, @PathVariable int year) throws IOException, GeneralSecurityException {
+  public ScanResult scan(@PathVariable String group, @PathVariable int year) {
+    if (year < 2020 || year > LocalDate.now().getYear()) {
+      throw new IllegalArgumentException("Invalid year: " + year);
+    }
 
     Map<Source, String> queries = switch (group) {
       case "food" -> FoodQueries.SOURCE_QUERIES_MAP;
@@ -57,12 +62,8 @@ public class Endpoint {
       default -> throw new UnsupportedGroupException("Unsupported group: " + group);
     };
 
-    if (year < 2020 || year > LocalDate.now().getYear()) {
-      throw new IllegalArgumentException("Invalid year: " + year);
-    }
-
-    OrderService orderService = new OrderService(googleServiceProvider, oauth2AuthorizedClientProvider);
-    Map<Source, List<Order>> orders = orderService.getOrderMap(year, queries);
+    Gmail gmail = googleServiceProvider.getGmailService(oauth2AuthorizedClientProvider.getClient());
+    Map<Source, List<Order>> orders = orderService.getOrderMap(gmail, year, queries);
     return this.mapper.fromOrderMap(group, year, orders);
   }
 }

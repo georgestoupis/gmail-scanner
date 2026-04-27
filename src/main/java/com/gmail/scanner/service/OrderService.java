@@ -1,8 +1,6 @@
 package com.gmail.scanner.service;
 
 import com.gmail.scanner.exception.InsufficientScopeException;
-import com.gmail.scanner.google.GoogleServiceProvider;
-import com.gmail.scanner.security.OAuth2AuthorizedClientProvider;
 import com.gmail.scanner.service.model.Order;
 import com.gmail.scanner.service.model.Source;
 import com.gmail.scanner.service.parser.EmailData;
@@ -18,7 +16,6 @@ import com.google.api.services.gmail.model.MessagePart;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -31,8 +28,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 
+@Service
 public class OrderService {
 
   private static final Logger LOG = LoggerFactory.getLogger(OrderService.class);
@@ -41,18 +40,11 @@ public class OrderService {
   private static final String GMAIL_USER = "me";
   private static final String PERIOD_QUERY_STRING = " AND before:%1$d/12/31 AND after:%1$d/01/01";
 
-  private final Gmail gmail;
-
-  public OrderService(GoogleServiceProvider googleServiceProvider, OAuth2AuthorizedClientProvider clientProvider)
-      throws IOException, GeneralSecurityException {
-    this.gmail = (Gmail) googleServiceProvider.getService(clientProvider.getClient());
-  }
-
-  public Map<Source, List<Order>> getOrderMap(int year, Map<Source, String> queries) {
+  public Map<Source, List<Order>> getOrderMap(Gmail gmail, int year, Map<Source, String> queries) {
     Map<Source, List<Order>> orders = new EnumMap<>(Source.class);
     try {
       for (Entry<Source, String> entry : queries.entrySet()) {
-        orders.put(entry.getKey(), this.getOrdersFromSource(year, entry.getKey(), entry.getValue()));
+        orders.put(entry.getKey(), this.getOrdersFromSource(gmail, year, entry.getKey(), entry.getValue()));
       }
       return orders;
     } catch (GoogleJsonResponseException ex) {
@@ -65,18 +57,16 @@ public class OrderService {
     }
   }
 
-  private List<Order> getOrdersFromSource(int year, Source source, String query) throws IOException {
-
-    //Append period postfix to query
+  private List<Order> getOrdersFromSource(Gmail gmail, int year, Source source, String query) throws IOException {
     query += PERIOD_QUERY_STRING.formatted(year);
-    List<Message> messages = this.loadMessagesPaginated(query);
+    List<Message> messages = this.loadMessagesPaginated(gmail, query);
     if (messages.isEmpty()) {
       LOG.info("No {} order emails found for {}", source, year);
       return Collections.emptyList();
     }
     LOG.info("Got {} {} order emails for {}", messages.size(), source, year);
 
-    List<Message> detailedMessageList = this.populateDetailedMessageList(messages);
+    List<Message> detailedMessageList = this.populateDetailedMessageList(gmail, messages);
 
     List<Order> orders = new ArrayList<>();
     for (Message detailedMessage : detailedMessageList) {
@@ -99,7 +89,7 @@ public class OrderService {
     return orders;
   }
 
-  private List<Message> loadMessagesPaginated(String query) throws IOException {
+  private List<Message> loadMessagesPaginated(Gmail gmail, String query) throws IOException {
     List<Message> messages = new ArrayList<>();
     String pageToken = null;
     boolean hasNextPage = true;
@@ -119,11 +109,9 @@ public class OrderService {
     return messages;
   }
 
-  private List<Message> populateDetailedMessageList(List<Message> messages) throws IOException {
-
+  private List<Message> populateDetailedMessageList(Gmail gmail, List<Message> messages) throws IOException {
     List<Message> detailedMessageList = new ArrayList<>();
 
-    //A callback for the batch request that adds a detailed msg to the list
     final JsonBatchCallback<Message> callback = new JsonBatchCallback<>() {
       public void onSuccess(Message message, HttpHeaders responseHeaders) {
         detailedMessageList.add(message);
@@ -134,7 +122,6 @@ public class OrderService {
       }
     };
 
-    //Request detailed messages in batches
     BatchRequest batchRequest = gmail.batch();
     List<List<Message>> lists = Lists.partition(messages, GMAIL_MESSAGE_BATCH_SIZE);
     for (List<Message> list : lists) {
@@ -166,7 +153,7 @@ public class OrderService {
     return null;
   }
 
-  public String logBase64(String string) {
+  private String logBase64(String string) {
     return Base64.getEncoder().encodeToString(shrinkString(string).getBytes(StandardCharsets.UTF_8));
   }
 
@@ -175,5 +162,4 @@ public class OrderService {
         ? null
         : string.lines().map(String::trim).filter(x -> !x.isBlank()).reduce("", String::concat);
   }
-
 }
