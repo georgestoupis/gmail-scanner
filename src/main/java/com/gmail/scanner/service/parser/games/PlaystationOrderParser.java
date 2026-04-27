@@ -12,16 +12,16 @@ import org.jsoup.nodes.Document;
 
 public class PlaystationOrderParser implements OrderParser {
 
-  private static final String PRICE_PREFIX_1 = "Total:";
+  private static final String PRICE_PREFIX = "Total:";
 
   @Override
   public Optional<String> parseOrderPrice(EmailData emailData) {
     Document document = Jsoup.parse(emailData.payload() != null ? emailData.payload() : emailData.html());
     List<String> texts = parseHtmlTdElements(document);
     String price = null;
-    for (int i = 0; i < texts.size() - 1; i++) {
-      if (texts.get(i).contains(PRICE_PREFIX_1)) {
-        price = normalizePrice(texts.get(i), PRICE_PREFIX_1);
+    for (String text : texts) {
+      if (text.contains(PRICE_PREFIX)) {
+        price = normalizePrice(text, PRICE_PREFIX);
       }
     }
     return Optional.ofNullable(price);
