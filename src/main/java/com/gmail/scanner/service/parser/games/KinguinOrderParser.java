@@ -4,35 +4,30 @@ import static com.gmail.scanner.service.parser.ParserUtils.foundTotalPrice;
 import static com.gmail.scanner.service.parser.ParserUtils.normalizePrice;
 import static com.gmail.scanner.service.parser.ParserUtils.parseHtmlTdElements;
 
-import com.gmail.scanner.service.model.Order;
-import com.gmail.scanner.service.model.Source;
 import com.gmail.scanner.service.parser.EmailData;
 import com.gmail.scanner.service.parser.OrderParser;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 public class KinguinOrderParser implements OrderParser {
 
-  private static final String PRICE_PREFIX_1 = "Total";
+  private static final String PRICE_PREFIX = "Total";
 
   @Override
-  public Order parseOrder(EmailData emailData, Source source, LocalDateTime orderDateTime) {
+  public Optional<String> parseOrderPrice(EmailData emailData) {
     Document document = Jsoup.parse(emailData.html());
     List<String> texts = parseHtmlTdElements(document);
-    Order order = new Order();
+    String price = null;
     for (int i = 0; i < texts.size() - 1; i++) {
-      String current = texts.get(i);
-      if (current.contains(PRICE_PREFIX_1)) {
+      if (texts.get(i).contains(PRICE_PREFIX)) {
         String next = normalizePrice(texts.get(i + 1));
-        if (foundTotalPrice(order, next)) {
-          order.setPrice(next);
+        if (foundTotalPrice(price, next)) {
+          price = next;
         }
       }
     }
-    order.setSource(source);
-    order.setDate(orderDateTime);
-    return order;
+    return Optional.ofNullable(price);
   }
 }

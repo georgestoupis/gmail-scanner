@@ -1,6 +1,5 @@
 package com.gmail.scanner.service.parser;
 
-import com.gmail.scanner.service.model.Order;
 import com.google.common.base.CharMatcher;
 import java.util.List;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -17,18 +16,14 @@ public final class ParserUtils {
     return price.replace(",", ".").trim();
   }
 
-  public static boolean foundTotalPrice(Order order, String priceText) {
-    if (!NumberUtils.isParsable(priceText)) {
+  public static boolean foundTotalPrice(String currentPrice, String newPrice) {
+    if (!NumberUtils.isParsable(newPrice)) {
       return false;
     }
-
-    if (order.getPrice() == null) {
+    if (currentPrice == null) {
       return true;
     }
-
-    var currentOrderPrice = Double.parseDouble(order.getPrice());
-    var newOrderPrice = Double.parseDouble(priceText);
-    return currentOrderPrice < newOrderPrice;
+    return Double.parseDouble(currentPrice) < Double.parseDouble(newPrice);
   }
 
   public static List<String> parseHtmlTdElements(Document document) {

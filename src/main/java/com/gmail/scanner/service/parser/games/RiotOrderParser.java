@@ -2,12 +2,10 @@ package com.gmail.scanner.service.parser.games;
 
 import static com.gmail.scanner.service.parser.ParserUtils.normalizePrice;
 
-import com.gmail.scanner.service.model.Order;
-import com.gmail.scanner.service.model.Source;
 import com.gmail.scanner.service.parser.EmailData;
 import com.gmail.scanner.service.parser.OrderParser;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public class RiotOrderParser implements OrderParser {
 
@@ -15,8 +13,7 @@ public class RiotOrderParser implements OrderParser {
   private static final String PRICE_PREFIX_2022 = "You have paid:";
 
   @Override
-  public Order parseOrder(EmailData emailData, Source source, LocalDateTime orderDateTime) {
-    Order order = new Order();
+  public Optional<String> parseOrderPrice(EmailData emailData) {
     List<String> lines = emailData.plain().lines().toList();
     String price = null;
     for (int i = 0; i < lines.size() - 1; i++) {
@@ -26,14 +23,10 @@ public class RiotOrderParser implements OrderParser {
       } else if (line.contains(PRICE_PREFIX_2022)) {
         price = normalizePrice(line, PRICE_PREFIX_2022);
       }
-
       if (price != null) {
-        order.setPrice(price);
         break;
       }
     }
-    order.setSource(source);
-    order.setDate(orderDateTime);
-    return order;
+    return Optional.ofNullable(price);
   }
 }

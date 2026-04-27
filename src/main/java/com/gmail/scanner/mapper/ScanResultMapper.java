@@ -18,7 +18,7 @@ public class ScanResultMapper {
 
     List<SourceResult> sourceResultList = orders.entrySet()
         .stream()
-        .map(entry -> createSourceResultFromArgs(entry.getKey(), entry.getValue()))
+        .map(entry -> toSourceResult(entry.getKey(), entry.getValue()))
         .toList();
 
     BigDecimal totalSum = sourceResultList.stream()
@@ -32,12 +32,10 @@ public class ScanResultMapper {
     return new ScanResult(group, String.valueOf(year), sourceResultList, totalSum, avgPerMonth, "Worth it.");
   }
 
-  private SourceResult createSourceResultFromArgs(Source source, List<Order> orders) {
-
+  private SourceResult toSourceResult(Source source, List<Order> orders) {
     BigDecimal sumOfOrders = orders.stream()
-        .map(o -> new BigDecimal(o.getPrice()))
+        .map(o -> new BigDecimal(o.price()))
         .reduce(BigDecimal.ZERO, BigDecimal::add);
-
     return new SourceResult(source, orders.size(), sumOfOrders);
   }
 }

@@ -26,6 +26,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -77,9 +78,9 @@ public class OrderService {
       EmailData emailData = new EmailData(payload, plain, html);
 
       LocalDateTime orderDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(detailedMessage.getInternalDate()), ZoneId.systemDefault());
-      Order order = source.getParser().parseOrder(emailData, source, orderDateTime);
-      if (order != null && order.getPrice() != null) {
-        orders.add(order);
+      Optional<String> price = source.getParser().parseOrderPrice(emailData);
+      if (price.isPresent()) {
+        orders.add(new Order(source, orderDateTime, price.get()));
       } else {
         LOG.warn("{} {} Failed to parse email messageId={}", source, year, detailedMessage.getId());
         LOG.debug("{} {} Failed to parse email body: {}", source, year, this.logBase64(emailData.toString()));
@@ -92,8 +93,7 @@ public class OrderService {
   private List<Message> loadMessagesPaginated(Gmail gmail, String query) throws IOException {
     List<Message> messages = new ArrayList<>();
     String pageToken = null;
-    boolean hasNextPage = true;
-    while (hasNextPage) {
+    do {
       ListMessagesResponse resp = gmail.users().messages()
           .list(GMAIL_USER)
           .setQ(query)
@@ -104,8 +104,7 @@ public class OrderService {
         messages.addAll(resp.getMessages());
       }
       pageToken = resp.getNextPageToken();
-      hasNextPage = pageToken != null;
-    }
+    } while (pageToken != null);
     return messages;
   }
 

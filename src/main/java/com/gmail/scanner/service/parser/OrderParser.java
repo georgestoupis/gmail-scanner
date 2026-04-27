@@ -1,11 +1,7 @@
 package com.gmail.scanner.service.parser;
 
-import com.gmail.scanner.service.model.Order;
-import com.gmail.scanner.service.model.Source;
-import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface OrderParser {
-
-  Order parseOrder(EmailData emailData, Source source, LocalDateTime orderDateTime);
-
+  Optional<String> parseOrderPrice(EmailData emailData);
 }

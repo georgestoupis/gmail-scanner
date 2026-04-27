@@ -1,6 +1,5 @@
 package com.gmail.scanner.service.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gmail.scanner.service.parser.food.BoxOrderParser;
 import com.gmail.scanner.service.parser.food.EfoodOrderParser;
 import com.gmail.scanner.service.parser.games.KinguinOrderParser;
@@ -13,7 +12,7 @@ import com.gmail.scanner.service.parser.travel.UberOrderParser;
 import com.gmail.scanner.service.parser.food.WoltOrderParser;
 
 public enum Source {
-  EFOOD(new EfoodOrderParser(new ObjectMapper())),
+  EFOOD(new EfoodOrderParser()),
   WOLT(new WoltOrderParser()),
   BOX(new BoxOrderParser()),
   STEAM(new SteamOrderParser()),

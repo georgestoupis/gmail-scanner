@@ -1,12 +1,10 @@
 package com.gmail.scanner.service.parser.food;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gmail.scanner.service.model.FoodOrder;
-import com.gmail.scanner.service.model.Source;
 import com.gmail.scanner.service.parser.EmailData;
 import com.gmail.scanner.service.parser.OrderParser;
-import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import org.jsoup.Jsoup;
@@ -16,14 +14,13 @@ import org.jsoup.select.Elements;
 
 public class EfoodOrderParser implements OrderParser {
 
-  private final ObjectMapper mapper;
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
-  public EfoodOrderParser(ObjectMapper mapper) {
-    this.mapper = mapper;
-  }
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  private record EfoodData(String price) {}
 
   @Override
-  public FoodOrder parseOrder(EmailData emailData, Source source, LocalDateTime orderDateTime) {
+  public Optional<String> parseOrderPrice(EmailData emailData) {
     Document document = Jsoup.parse(emailData.payload() != null ? emailData.payload() : emailData.html());
     Elements scripts = document.getElementsByTag("script");
     Optional<String> orderJson = scripts.stream()
@@ -34,16 +31,13 @@ public class EfoodOrderParser implements OrderParser {
             .orElse(null))
         .filter(Objects::nonNull)
         .findFirst();
+    if (orderJson.isEmpty()) {
+      return Optional.empty();
+    }
     try {
-      if (orderJson.isEmpty()) {
-        return null;
-      }
-      FoodOrder foodOrder = mapper.readValue(orderJson.get(), FoodOrder.class);
-      foodOrder.setSource(source);
-      foodOrder.setDate(orderDateTime);
-      return foodOrder;
-    } catch (JsonProcessingException jsonProcessingException) {
-      return null;
+      return Optional.ofNullable(MAPPER.readValue(orderJson.get(), EfoodData.class).price());
+    } catch (JsonProcessingException e) {
+      return Optional.empty();
     }
   }
 }
