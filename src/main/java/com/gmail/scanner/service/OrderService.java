@@ -91,7 +91,8 @@ public class OrderService {
       if (order != null && order.getPrice() != null) {
         orders.add(order);
       } else {
-        LOG.error("{} {} Unparsed EmailData: {}", source, year, this.logBase64(emailData.toString()));
+        LOG.warn("{} {} Failed to parse email messageId={}", source, year, detailedMessage.getId());
+        LOG.debug("{} {} Failed to parse email body: {}", source, year, this.logBase64(emailData.toString()));
       }
     }
     LOG.info("Parsed {} {} orders for {}", orders.size(), source, year);

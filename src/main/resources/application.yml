@@ -12,4 +12,4 @@ spring:
               - https://www.googleapis.com/auth/gmail.readonly
 logging:
   level:
-    org.springframework.web: DEBUG
+    com.gmail.scanner: DEBUG
