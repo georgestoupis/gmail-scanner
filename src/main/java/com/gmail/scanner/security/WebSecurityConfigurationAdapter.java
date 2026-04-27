@@ -32,19 +32,14 @@ public class WebSecurityConfigurationAdapter {
 
   @Bean
   public OAuth2AuthorizationRequestResolver authorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {
-    var resolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization");
-    resolver.setAuthorizationRequestCustomizer(builder -> builder.additionalParameters(params -> {
-      params.put("access_type", "offline");
-      params.put("prompt", "consent");
-    }));
-    return resolver;
+    return new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization");
   }
 
   @Bean
   public OAuth2AuthorizedClientManager authorizedClientManager(ClientRegistrationRepository clientRegistrationRepository,
       OAuth2AuthorizedClientService authorizedClientService) {
     var manager = new AuthorizedClientServiceOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientService);
-    manager.setAuthorizedClientProvider(OAuth2AuthorizedClientProviderBuilder.builder().authorizationCode().refreshToken().build());
+    manager.setAuthorizedClientProvider(OAuth2AuthorizedClientProviderBuilder.builder().authorizationCode().build());
     return manager;
   }
 }
