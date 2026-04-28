@@ -545,6 +545,18 @@
       padding: 1rem;
     }
 
+    .monthly-panel {
+      animation: fadeUp 0.4s 0.26s ease both;
+      opacity: 0;
+      margin-top: 10px;
+    }
+
+    .bar-chart-wrap {
+      position: relative;
+      height: 220px;
+      padding: 1rem 1.4rem 1rem;
+    }
+
     #empty {
       text-align: center;
       padding: 5rem 2rem;
@@ -711,6 +723,16 @@
       </div>
     </div>
 
+    <div class="panel monthly-panel">
+      <div class="panel-header">
+        <span class="panel-title">Monthly Breakdown</span>
+        <span class="panel-badge" id="monthly-year-badge"></span>
+      </div>
+      <div class="bar-chart-wrap">
+        <canvas id="monthly-chart"></canvas>
+      </div>
+    </div>
+
     <div id="empty">
       <div class="empty-icon">📭</div>
       <p>Run a scan to see your results.</p>
@@ -727,6 +749,9 @@
   document.getElementById('year-input').setAttribute("min", 2020);
 
   let chartInstance = null;
+  let monthlyChartInstance = null;
+  let lastMonthlyTotals = null;
+  let lastPeriod = null;
 
   // =============================================
   // THEME TOGGLE
@@ -772,6 +797,76 @@
     chartInstance.options.plugins.tooltip.borderColor = c.tooltipBorder;
     chartInstance.options.plugins.tooltip.titleColor = c.text;
     chartInstance.update();
+    if (monthlyChartInstance && lastMonthlyTotals) {
+      renderMonthlyChart(lastMonthlyTotals, lastPeriod);
+    }
+  }
+
+  const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  function renderMonthlyChart(monthlyTotals, year) {
+    if (monthlyChartInstance) { monthlyChartInstance.destroy(); monthlyChartInstance = null; }
+
+    const values = MONTH_LABELS.map((_, i) => {
+      const v = monthlyTotals[i + 1];
+      return v != null ? Number(v) : 0;
+    });
+
+    const s = getComputedStyle(document.documentElement);
+    const accentColor  = s.getPropertyValue('--accent').trim();
+    const accent2Color = s.getPropertyValue('--accent2').trim();
+    const tealColor    = s.getPropertyValue('--teal').trim();
+    const borderColor  = s.getPropertyValue('--border').trim();
+    const c = {
+      tooltip:       s.getPropertyValue('--tooltip-bg').trim(),
+      tooltipBorder: s.getPropertyValue('--tooltip-border').trim(),
+      text:          s.getPropertyValue('--text').trim(),
+      muted:         s.getPropertyValue('--muted').trim(),
+    };
+
+    const max = Math.max(...values, 1);
+    const barColors = values.map(v => {
+      const r = v / max;
+      if (r > 0.66) return accentColor;
+      if (r > 0.33) return accent2Color;
+      return tealColor;
+    });
+
+    monthlyChartInstance = new Chart(
+      document.getElementById('monthly-chart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: MONTH_LABELS,
+          datasets: [{ data: values, backgroundColor: barColors, borderRadius: 6, borderSkipped: false }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: c.tooltip, borderColor: c.tooltipBorder, borderWidth: 1,
+              titleColor: c.text, bodyColor: c.muted,
+              titleFont: { family: "'Nunito', sans-serif", weight: 'bold' },
+              bodyFont: { family: "'Rubik', sans-serif", size: 13 },
+              callbacks: { label: ctx => ` ${fmt(ctx.parsed.y)}` }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: borderColor },
+              ticks: { color: c.muted, font: { family: "'Nunito', sans-serif", weight: '700', size: 11 } }
+            },
+            y: {
+              grid: { color: borderColor },
+              ticks: { color: c.muted, font: { family: "'Rubik', sans-serif", size: 11 }, callback: v => fmt(v) },
+              beginAtZero: true
+            }
+          }
+        }
+      }
+    );
   }
 
   // =============================================
@@ -917,6 +1012,10 @@
         `${data.sources.length} source${data.sources.length !== 1 ? 's' : ''}`;
 
     renderChart(data.sources);
+    lastMonthlyTotals = data.monthlyTotals;
+    lastPeriod = data.period;
+    document.getElementById('monthly-year-badge').textContent = data.period;
+    renderMonthlyChart(data.monthlyTotals, data.period);
   }
 
   function renderChart(sources) {
@@ -929,8 +1028,7 @@
     const labels = sorted.map(
         s => (s.source?.name || s.source || 'Unknown').toLowerCase().replace(/_/g, ' '));
     const values = sorted.map(s => s.sum);
-    const palette = ['#ff5757', '#ffd166', '#06d6a0', '#c084fc', '#38bdf8', '#fb923c', '#f472b6',
-      '#a3e635'];
+    const palette = ['#38bdf8', '#818cf8', '#c084fc', '#f472b6', '#e879f9', '#60a5fa', '#a78bfa', '#fb7185'];
     const c = getThemeColors();
 
     chartInstance = new Chart(document.getElementById('spend-chart').getContext('2d'), {

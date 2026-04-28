@@ -9,6 +9,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -29,7 +30,13 @@ public class ScanResultMapper {
 
     BigDecimal avgPerMonth = totalSum.divide(BigDecimal.valueOf(monthsToDate), RoundingMode.HALF_UP);
 
-    return new ScanResult(group, String.valueOf(year), sourceResultList, totalSum, avgPerMonth, "Worth it.");
+    Map<Integer, BigDecimal> monthlyTotals = orders.values().stream()
+        .flatMap(List::stream)
+        .collect(Collectors.groupingBy(o -> o.date().getMonthValue(),
+            Collectors.reducing(BigDecimal.ZERO, o -> new BigDecimal(o.price()), BigDecimal::add)
+        ));
+
+    return new ScanResult(group, String.valueOf(year), sourceResultList, totalSum, avgPerMonth, monthlyTotals, "OK.");
   }
 
   private SourceResult toSourceResult(Source source, List<Order> orders) {

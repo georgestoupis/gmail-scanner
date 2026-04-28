@@ -10,7 +10,7 @@ A Spring Boot application that scans your Gmail inbox for order confirmation ema
   - **Games:** Steam, Kinguin, Riot Games, PlayStation
   - **Shopping:** Skroutz
   - **Travel:** Uber
-- Returns total spend, per-vendor breakdown, and average monthly spend for any given year
+- Returns total spend, per-vendor breakdown, average monthly spend, and a month-by-month breakdown for any given year
 
 ## Requirements
 
@@ -70,7 +70,12 @@ All endpoints require an authenticated session (redirect to Google login happens
   ],
   "totalSum": "401.70",
   "avgMonth": "33.47",
-  "msg": null
+  "monthlyTotals": {
+    "1": "28.90",
+    "2": "41.30",
+    "3": "35.00"
+  },
+  "msg": "OK."
 }
 ```
 
