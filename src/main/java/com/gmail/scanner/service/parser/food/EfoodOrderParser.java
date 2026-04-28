@@ -1,8 +1,8 @@
 package com.gmail.scanner.service.parser.food;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.gmail.scanner.service.parser.EmailData;
 import com.gmail.scanner.service.parser.OrderParser;
 import java.util.Objects;
@@ -36,7 +36,7 @@ public class EfoodOrderParser implements OrderParser {
     }
     try {
       return Optional.ofNullable(MAPPER.readValue(orderJson.get(), EfoodData.class).price());
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       return Optional.empty();
     }
   }
