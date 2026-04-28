@@ -1,5 +1,6 @@
 package com.gmail.scanner.mapper;
 
+import com.gmail.scanner.model.Group;
 import com.gmail.scanner.model.ScanResult;
 import com.gmail.scanner.model.SourceResult;
 import com.gmail.scanner.service.model.Order;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ScanResultMapper {
 
-  public ScanResult fromOrderMap(String group, int year, Map<Source, List<Order>> orders) {
+  public ScanResult fromOrderMap(Group group, int year, Map<Source, List<Order>> orders) {
 
     List<SourceResult> sourceResultList = orders.entrySet()
         .stream()
@@ -33,10 +34,10 @@ public class ScanResultMapper {
     Map<Integer, BigDecimal> monthlyTotals = orders.values().stream()
         .flatMap(List::stream)
         .collect(Collectors.groupingBy(o -> o.date().getMonthValue(),
-            Collectors.reducing(BigDecimal.ZERO, o -> new BigDecimal(o.price()), BigDecimal::add)
+            Collectors.reducing(BigDecimal.ZERO, this::price, BigDecimal::add)
         ));
 
-    return new ScanResult(group, String.valueOf(year), sourceResultList, totalSum, avgPerMonth, monthlyTotals, "OK.");
+    return new ScanResult(group, String.valueOf(year), sourceResultList, totalSum, avgPerMonth, monthlyTotals, group.message);
   }
 
   private SourceResult toSourceResult(Source source, List<Order> orders) {
@@ -44,5 +45,9 @@ public class ScanResultMapper {
         .map(o -> new BigDecimal(o.price()))
         .reduce(BigDecimal.ZERO, BigDecimal::add);
     return new SourceResult(source, orders.size(), sumOfOrders);
+  }
+
+  private BigDecimal price(Order order) {
+    return new BigDecimal(order.price());
   }
 }

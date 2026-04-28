@@ -1,17 +1,13 @@
 package com.gmail.scanner.web;
 
-import com.gmail.scanner.exception.UnsupportedGroupException;
 import com.gmail.scanner.google.GoogleServiceProvider;
 import com.gmail.scanner.mapper.ScanResultMapper;
+import com.gmail.scanner.model.Group;
 import com.gmail.scanner.model.ScanResult;
 import com.gmail.scanner.security.OAuth2AuthorizedClientProvider;
 import com.gmail.scanner.service.OrderService;
 import com.gmail.scanner.service.model.Order;
 import com.gmail.scanner.service.model.Source;
-import com.gmail.scanner.service.queries.FoodQueries;
-import com.gmail.scanner.service.queries.GameQueries;
-import com.gmail.scanner.service.queries.ShoppingQueries;
-import com.gmail.scanner.service.queries.TravelQueries;
 import com.google.api.services.gmail.Gmail;
 import java.time.LocalDate;
 import java.util.List;
@@ -54,16 +50,9 @@ public class Endpoint {
       throw new IllegalArgumentException("Invalid year: " + year);
     }
 
-    Map<Source, String> queries = switch (group) {
-      case "food" -> FoodQueries.SOURCE_QUERIES_MAP;
-      case "games" -> GameQueries.SOURCE_QUERIES_MAP;
-      case "shopping" -> ShoppingQueries.SOURCE_QUERIES_MAP;
-      case "travel" -> TravelQueries.SOURCE_QUERIES_MAP;
-      default -> throw new UnsupportedGroupException("Unsupported group: " + group);
-    };
-
+    Group groupEnum = Group.from(group);
     Gmail gmail = googleServiceProvider.getGmailService(oauth2AuthorizedClientProvider.getClient());
-    Map<Source, List<Order>> orders = orderService.getOrderMap(gmail, year, queries);
-    return this.mapper.fromOrderMap(group, year, orders);
+    Map<Source, List<Order>> orders = orderService.getOrderMap(gmail, year, groupEnum.getQueries());
+    return this.mapper.fromOrderMap(groupEnum, year, orders);
   }
 }
