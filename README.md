@@ -100,7 +100,6 @@ src/main/java/com/gmail/scanner/
 
 ## Notes
 
-- This is a tool for personal use. Google's `gmail.readonly` scope requires a security audit to leave
-  testing mode, 
+- This is a tool for personal use. Google's `gmail.readonly` scope requires a security audit to leave testing mode. 
 - The app can only be used by accounts you manually whitelist in Google Cloud Console. See the `Audience` section of your app.
 - Spending history is only as complete as your inbox. If you've deleted emails, they cannot and will not be scanned.
