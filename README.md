@@ -100,5 +100,7 @@ src/main/java/com/gmail/scanner/
 
 ## Notes
 
-- The app requests `gmail.readonly` scope only — it cannot modify or delete your emails.
-- Gmail API results are fetched in pages of 500 and batched in groups of 20 for detail retrieval.
+- This is a tool for personal use. Google's `gmail.readonly` scope requires a security audit to leave
+  testing mode, 
+- The app can only be used by accounts you manually whitelist in Google Cloud Console. See the `Audience` section of your app.
+- Spending history is only as complete as your inbox. If you've deleted emails, they cannot and will not be scanned.
