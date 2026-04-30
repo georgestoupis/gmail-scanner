@@ -81,16 +81,21 @@ All endpoints require an authenticated session (redirect to Google login happens
 
 ## Deployment
 
-The app is deployed to **Google Cloud Run** — Google's managed container runtime — using a CI/CD pipeline powered by two other Google services: **Google Cloud Build** (builds and pushes the image on every push to `main`) and **Google Artifact Registry** (stores the Docker image).
+The app is deployed to **Google Cloud Run** — Google's managed container runtime. CI/CD is handled by **GitHub Actions**, which builds the Docker image, pushes it to **Google Artifact Registry**, and deploys to Cloud Run on every push to `main`.
 
 ### How it works
 
-1. A push to `main` triggers **Google Cloud Build**, which reads `cloudbuild.yaml`
-2. Cloud Build builds the Docker image defined in `Dockerfile` (multi-stage: Maven build → JRE runtime)
+1. A push to `main` triggers the GitHub Actions workflow (`.github/workflows/deploy.yml`)
+2. The workflow builds the Docker image defined in `Dockerfile` (multi-stage: Maven build → JRE runtime)
 3. The image is pushed to **Google Artifact Registry**
-4. Cloud Build deploys the new image to **Google Cloud Run**
+4. The workflow deploys the new image to **Google Cloud Run**
 
 ### First-time setup
+
+A GCP service account with the following roles is required, with its key stored as a `GCP_SA_KEY` GitHub Actions secret:
+- `roles/artifactregistry.writer`
+- `roles/run.admin`
+- `roles/iam.serviceAccountUser`
 
 The following env vars must be set on the Cloud Run service:
 
