@@ -9,7 +9,8 @@ public final class GameQueries {
       Source.RIOT, "from:noreply@mail.accounts.riotgames.com AND subject:Purchase Confirmation Receipt",
       Source.STEAM, "from:noreply@steampowered.com AND subject:\"Thank you for your Steam purchase\"",
       Source.KINGUIN, "(from:helpdesk@kinguin.net OR from:help@kinguin.net) AND subject:We have received your new order",
-      Source.PLAYSTATION, "from:playstation.com AND subject:Thank You For Your Purchase");
+      Source.PLAYSTATION, "from:playstation.com AND subject:Thank You For Your Purchase",
+      Source.NINTENDO, "from:no-reply@accounts.nintendo.com AND subject:\"Thank you for your Nintendo eShop purchase\"");
 
   private GameQueries() {
   }

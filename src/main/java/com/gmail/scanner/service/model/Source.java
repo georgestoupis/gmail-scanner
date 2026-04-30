@@ -3,6 +3,7 @@ package com.gmail.scanner.service.model;
 import com.gmail.scanner.service.parser.food.BoxOrderParser;
 import com.gmail.scanner.service.parser.food.EfoodOrderParser;
 import com.gmail.scanner.service.parser.games.KinguinOrderParser;
+import com.gmail.scanner.service.parser.games.NintendoOrderParser;
 import com.gmail.scanner.service.parser.OrderParser;
 import com.gmail.scanner.service.parser.games.PlaystationOrderParser;
 import com.gmail.scanner.service.parser.games.RiotOrderParser;
@@ -20,7 +21,8 @@ public enum Source {
   RIOT(new RiotOrderParser()),
   PLAYSTATION(new PlaystationOrderParser()),
   SKROUTZ(new SkroutzOrderParser()),
-  UBER(new UberOrderParser());
+  UBER(new UberOrderParser()),
+  NINTENDO(new NintendoOrderParser());
 
   final OrderParser parser;
 
