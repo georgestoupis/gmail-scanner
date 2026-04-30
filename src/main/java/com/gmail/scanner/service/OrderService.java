@@ -76,15 +76,9 @@ public class OrderService {
       String plain = this.findMessagePartWithMimeType(detailedMessage.getPayload().getParts(), MimeTypeUtils.TEXT_PLAIN_VALUE);
       String html = this.findMessagePartWithMimeType(detailedMessage.getPayload().getParts(), MimeTypeUtils.TEXT_HTML_VALUE);
       EmailData emailData = new EmailData(payload, plain, html);
-
       LocalDateTime orderDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(detailedMessage.getInternalDate()), ZoneId.systemDefault());
-      Optional<String> price = source.getParser().parseOrderPrice(emailData);
-      if (price.isPresent()) {
-        orders.add(new Order(source, orderDateTime, price.get()));
-      } else {
-        LOG.warn("{} {} Failed to parse email messageId={}", source, year, detailedMessage.getId());
-        LOG.debug("{} {} Failed to parse email body: {}", source, year, this.logBase64(emailData.toString()));
-      }
+      Optional<Order> order = createOrder(source, year, detailedMessage.getId(), orderDateTime, emailData);
+      order.ifPresent(orders::add);
     }
     LOG.info("Parsed {} {} orders for {}", orders.size(), source, year);
     return orders;
@@ -150,6 +144,19 @@ public class OrderService {
       }
     }
     return null;
+  }
+
+  private Optional<Order> createOrder(Source source, int year, String detailedMessageId, LocalDateTime orderDateTime, EmailData emailData) {
+    try {
+      Optional<String> price = source.getParser().parseOrderPrice(emailData);
+      if (price.isPresent()) {
+        return Optional.of(new Order(source, orderDateTime, price.get()));
+      }
+    } catch (Exception ignored) {
+    }
+    LOG.warn("{} {} Failed to parse email messageId={}", source, year, detailedMessageId);
+    LOG.debug("{} {} Failed to parse email body: {}", source, year, this.logBase64(emailData.toString()));
+    return Optional.empty();
   }
 
   private String logBase64(String string) {
