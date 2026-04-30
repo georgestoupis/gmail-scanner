@@ -79,6 +79,32 @@ All endpoints require an authenticated session (redirect to Google login happens
 }
 ```
 
+## Deployment
+
+The app is deployed to **Google Cloud Run** — Google's managed container runtime — using a CI/CD pipeline powered by two other Google services: **Google Cloud Build** (builds and pushes the image on every push to `main`) and **Google Artifact Registry** (stores the Docker image).
+
+### How it works
+
+1. A push to `main` triggers **Google Cloud Build**, which reads `cloudbuild.yaml`
+2. Cloud Build builds the Docker image defined in `Dockerfile` (multi-stage: Maven build → JRE runtime)
+3. The image is pushed to **Google Artifact Registry**
+4. Cloud Build deploys the new image to **Google Cloud Run**
+
+### First-time setup
+
+The following env vars must be set on the Cloud Run service:
+
+```
+GOOGLE_CLIENT_ID=<your-client-id>
+GOOGLE_CLIENT_SECRET=<your-client-secret>
+```
+
+You must also add the Cloud Run service URL as an authorized redirect URI in your Google Cloud OAuth client:
+
+```
+https://<your-cloud-run-url>/login/oauth2/code/google
+```
+
 ## Running Tests
 
 ```bash
