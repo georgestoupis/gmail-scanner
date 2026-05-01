@@ -94,21 +94,47 @@ public class OrderService {
     }
     LOG.info("Got {} {} order emails", messages.size(), source);
 
-    List<Message> detailedMessageList = this.populateDetailedMessageList(gmail, messages);
-
     List<Order> orders = new ArrayList<>();
-    for (Message detailedMessage : detailedMessageList) {
+    for (List<Message> partition : Lists.partition(messages, appConfig.gmail().batchSize())) {
+      List<Message> detailedBatch = fetchDetailedBatch(gmail, partition);
+      parseDetailedBatch(detailedBatch, source, orders);
+    }
+
+    LOG.info("Parsed {} {} orders", orders.size(), source);
+    return orders;
+  }
+
+  private List<Message> fetchDetailedBatch(Gmail gmail, List<Message> partition) throws IOException {
+    List<Message> detailedBatch = new ArrayList<>();
+
+    final JsonBatchCallback<Message> callback = new JsonBatchCallback<>() {
+      public void onSuccess(Message message, HttpHeaders responseHeaders) {
+        detailedBatch.add(message);
+      }
+      public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) {
+        LOG.warn("Couldn't get detailed message: {}", e.getMessage());
+      }
+    };
+
+    BatchRequest batchRequest = gmail.batch();
+    for (Message message : partition) {
+      gmail.users().messages().get(GMAIL_USER, message.getId()).queue(batchRequest, callback);
+    }
+    LOG.debug("Sending GMAIL API request (batch of: {})", partition.size());
+    batchRequest.execute();
+    return detailedBatch;
+  }
+
+  private void parseDetailedBatch(List<Message> detailedBatch, Source source, List<Order> orders) {
+    for (Message detailedMessage : detailedBatch) {
       byte[] data = detailedMessage.getPayload().getBody().decodeData();
       String payload = data == null ? null : new String(data, StandardCharsets.UTF_8);
       String plain = this.findMessagePartWithMimeType(detailedMessage.getPayload().getParts(), MimeTypeUtils.TEXT_PLAIN_VALUE);
       String html = this.findMessagePartWithMimeType(detailedMessage.getPayload().getParts(), MimeTypeUtils.TEXT_HTML_VALUE);
       EmailData emailData = new EmailData(payload, plain, html);
       LocalDateTime orderDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(detailedMessage.getInternalDate()), ZoneId.systemDefault());
-      Optional<Order> order = createOrder(source, detailedMessage.getId(), orderDateTime, emailData);
-      order.ifPresent(orders::add);
+      createOrder(source, detailedMessage.getId(), orderDateTime, emailData).ifPresent(orders::add);
     }
-    LOG.info("Parsed {} {} orders", orders.size(), source);
-    return orders;
   }
 
   private List<Message> loadMessagesPaginated(Gmail gmail, String query) throws IOException {
@@ -127,32 +153,6 @@ public class OrderService {
       pageToken = resp.getNextPageToken();
     } while (pageToken != null);
     return messages;
-  }
-
-  private List<Message> populateDetailedMessageList(Gmail gmail, List<Message> messages) throws IOException {
-    List<Message> detailedMessageList = new ArrayList<>();
-
-    final JsonBatchCallback<Message> callback = new JsonBatchCallback<>() {
-      public void onSuccess(Message message, HttpHeaders responseHeaders) {
-        detailedMessageList.add(message);
-      }
-
-      public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) {
-        LOG.warn("Couldn't get detailed message: {}", e.getMessage());
-      }
-    };
-
-    BatchRequest batchRequest = gmail.batch();
-    List<List<Message>> lists = Lists.partition(messages, appConfig.gmail().batchSize());
-    for (List<Message> list : lists) {
-      for (Message message : list) {
-        gmail.users().messages().get(GMAIL_USER, message.getId()).queue(batchRequest, callback);
-      }
-      LOG.debug("Sending GMAIL API request (batch of: {})", list.size());
-      batchRequest.execute();
-    }
-
-    return detailedMessageList;
   }
 
   private String findMessagePartWithMimeType(List<MessagePart> parts, String mimeType) {
