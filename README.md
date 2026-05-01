@@ -61,26 +61,6 @@ All endpoints require an authenticated session (redirect to Google login happens
 
 **Valid year values:** a 4-digit year (e.g. `2024`), or `all` for all-time results since the configured start year
 
-### Example response — `GET /scan/food/2024`
-
-```json
-{
-  "group": "food",
-  "period": "2024",
-  "sources": [
-    { "source": "EFOOD", "orders": 47, "sum": "312.50" },
-    { "source": "WOLT",  "orders": 12, "sum": "89.20"  }
-  ],
-  "totalSum": "401.70",
-  "avgMonth": "33.47",
-  "monthlyTotals": {
-    "1": "28.90",
-    "2": "41.30",
-    "3": "35.00"
-  },
-  "msg": "OK."
-}
-```
 
 ## Deployment
 
