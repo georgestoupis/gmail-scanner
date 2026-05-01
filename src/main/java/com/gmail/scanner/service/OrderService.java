@@ -5,6 +5,7 @@ import com.gmail.scanner.exception.InsufficientScopeException;
 import com.gmail.scanner.service.model.Order;
 import com.gmail.scanner.service.model.Source;
 import com.gmail.scanner.service.parser.EmailData;
+import com.gmail.scanner.service.parser.fallback.FallbackParser;
 import com.google.api.client.googleapis.batch.BatchRequest;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
@@ -37,6 +38,7 @@ import org.springframework.util.MimeTypeUtils;
 public class OrderService {
 
   private static final Logger LOG = LoggerFactory.getLogger(OrderService.class);
+  private static final FallbackParser FALLBACK_PARSER = new FallbackParser();
   private static final String GMAIL_USER = "me";
   private static final String PERIOD_QUERY_STRING = " AND before:%1$d/12/31 AND after:%1$d/01/01";
   private static final String ALL_TIME_QUERY_STRING = " AND after:%1$d/01/01";
@@ -111,6 +113,7 @@ public class OrderService {
       public void onSuccess(Message message, HttpHeaders responseHeaders) {
         detailedBatch.add(message);
       }
+
       public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) {
         LOG.warn("Couldn't get detailed message: {}", e.getMessage());
       }
@@ -175,7 +178,8 @@ public class OrderService {
 
   private Optional<Order> createOrder(Source source, String detailedMessageId, LocalDateTime orderDateTime, EmailData emailData) {
     try {
-      Optional<String> price = source.getParser().parseOrderPrice(emailData);
+      Optional<String> price = source.getParser().parseOrderPrice(emailData)
+          .or(() -> FALLBACK_PARSER.parseOrderPrice(emailData));
       if (price.isPresent()) {
         return Optional.of(new Order(source, orderDateTime, price.get()));
       }
