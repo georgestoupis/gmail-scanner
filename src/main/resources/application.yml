@@ -16,3 +16,10 @@ spring:
 logging:
   level:
     com.gmail.scanner: DEBUG
+
+app:
+  name: GmailScanner
+  start-year: 2020
+  gmail:
+    batch-size: 20
+    page-max-results: 500 # Gmail API maximum

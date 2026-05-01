@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 
 class ScanResultMapperTest {
 
-  private final ScanResultMapper mapper = new ScanResultMapper();
+  private final ScanResultMapper mapper = new ScanResultMapper(null);
 
   @Test
   void fromOrderMap_dividesByTwelveForPastYear() {

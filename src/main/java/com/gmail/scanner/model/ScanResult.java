@@ -9,7 +9,7 @@ public record ScanResult(Group group,
                          List<SourceResult> sources,
                          BigDecimal totalSum,
                          BigDecimal avgMonth,
-                         Map<Integer, BigDecimal> monthlyTotals,
+                         Map<Integer, BigDecimal> periodTotals,
                          String msg) {
 
 }

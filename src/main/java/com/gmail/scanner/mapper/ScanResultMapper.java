@@ -1,5 +1,6 @@
 package com.gmail.scanner.mapper;
 
+import com.gmail.scanner.config.AppConfiguration;
 import com.gmail.scanner.model.Group;
 import com.gmail.scanner.model.ScanResult;
 import com.gmail.scanner.model.SourceResult;
@@ -16,6 +17,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class ScanResultMapper {
 
+  private final AppConfiguration appConfig;
+
+  public ScanResultMapper(AppConfiguration appConfig) {
+    this.appConfig = appConfig;
+  }
+
   public ScanResult fromOrderMap(Group group, int year, Map<Source, List<Order>> orders) {
 
     List<SourceResult> sourceResultList = orders.entrySet()
@@ -31,13 +38,40 @@ public class ScanResultMapper {
 
     BigDecimal avgPerMonth = totalSum.divide(BigDecimal.valueOf(monthsToDate), RoundingMode.HALF_UP);
 
-    Map<Integer, BigDecimal> monthlyTotals = orders.values().stream()
+    Map<Integer, BigDecimal> periodTotals = orders.values().stream()
         .flatMap(List::stream)
         .collect(Collectors.groupingBy(o -> o.date().getMonthValue(),
             Collectors.reducing(BigDecimal.ZERO, this::price, BigDecimal::add)
         ));
 
-    return new ScanResult(group, String.valueOf(year), sourceResultList, totalSum, avgPerMonth, monthlyTotals, group.message);
+    return new ScanResult(group, String.valueOf(year), sourceResultList, totalSum, avgPerMonth, periodTotals, group.message);
+  }
+
+  public ScanResult fromOrderMapAllTime(Group group, Map<Source, List<Order>> orders) {
+
+    List<SourceResult> sourceResultList = orders.entrySet()
+        .stream()
+        .map(entry -> toSourceResult(entry.getKey(), entry.getValue()))
+        .toList();
+
+    BigDecimal totalSum = sourceResultList.stream()
+        .map(SourceResult::sum)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    // Denominator matches the configured start year
+    LocalDate now = LocalDate.now();
+    long totalMonths = (long) (now.getYear() - appConfig.startYear()) * 12 + now.getMonthValue();
+    BigDecimal avgPerMonth = totalSum.divide(BigDecimal.valueOf(totalMonths), RoundingMode.HALF_UP);
+
+    Map<Integer, BigDecimal> periodTotals = orders.values().stream()
+        .flatMap(List::stream)
+        .collect(Collectors.groupingBy(
+            o -> o.date().getYear(),
+            Collectors.reducing(BigDecimal.ZERO, this::price, BigDecimal::add)
+        ));
+
+    String period = appConfig.startYear() + " – " + now.getYear();
+    return new ScanResult(group, period, sourceResultList, totalSum, avgPerMonth, periodTotals, group.message);
   }
 
   private SourceResult toSourceResult(Source source, List<Order> orders) {

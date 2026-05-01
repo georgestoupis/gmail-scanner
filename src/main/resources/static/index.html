@@ -203,7 +203,7 @@
       transition: color 0.35s;
     }
 
-    select, input[type="number"] {
+    select {
       background: var(--surface);
       border: 1.5px solid var(--border);
       color: var(--text);
@@ -218,12 +218,8 @@
       -webkit-appearance: none;
     }
 
-    select:focus, input[type="number"]:focus {
+    select:focus {
       border-color: var(--accent);
-    }
-
-    input[type="number"] {
-      width: 100px;
     }
 
     .btn-scan {
@@ -676,8 +672,8 @@
         </select>
       </div>
       <div>
-        <label for="year-input">Year</label><br/>
-        <input type="number" id="year-input"/>
+        <label for="year-select">Year</label><br/>
+        <select id="year-select"></select>
       </div>
       <div style="align-self:flex-end">
         <button class="btn-scan" id="scan-btn" onclick="runScan()">Run Scan</button>
@@ -725,7 +721,7 @@
 
     <div class="panel monthly-panel">
       <div class="panel-header">
-        <span class="panel-title">Monthly Breakdown</span>
+        <span class="panel-title" id="breakdown-title">Monthly Breakdown</span>
         <span class="panel-badge" id="monthly-year-badge"></span>
       </div>
       <div class="bar-chart-wrap">
@@ -742,16 +738,11 @@
 </main>
 
 <script>
-  // ---- Set year input to current year ----
   var currentYear = new Date().getFullYear();
-  document.getElementById('year-input').value = currentYear;
-  document.getElementById('year-input').setAttribute("max", currentYear);
-  document.getElementById('year-input').setAttribute("min", 2020);
 
   let chartInstance = null;
   let monthlyChartInstance = null;
-  let lastMonthlyTotals = null;
-  let lastPeriod = null;
+  let lastData = null;
 
   // =============================================
   // THEME TOGGLE
@@ -797,21 +788,28 @@
     chartInstance.options.plugins.tooltip.borderColor = c.tooltipBorder;
     chartInstance.options.plugins.tooltip.titleColor = c.text;
     chartInstance.update();
-    if (monthlyChartInstance && lastMonthlyTotals) {
-      renderMonthlyChart(lastMonthlyTotals, lastPeriod);
+    if (monthlyChartInstance && lastData) {
+      renderBreakdownChart(lastData);
     }
   }
 
   const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  function renderMonthlyChart(monthlyTotals, year) {
+  function renderBreakdownChart(data) {
     if (monthlyChartInstance) { monthlyChartInstance.destroy(); monthlyChartInstance = null; }
 
-    const values = MONTH_LABELS.map((_, i) => {
-      const v = monthlyTotals[i + 1];
-      return v != null ? Number(v) : 0;
-    });
+    const isAllTime = !/^\d{4}$/.test(data.period);
+    document.getElementById('breakdown-title').textContent = isAllTime ? 'Yearly Breakdown' : 'Monthly Breakdown';
+    document.getElementById('monthly-year-badge').textContent = data.period;
+
+    const totalsMap = data.periodTotals;
+    const labels = isAllTime
+        ? Object.keys(totalsMap).map(Number).sort((a, b) => a - b).map(String)
+        : MONTH_LABELS;
+    const values = isAllTime
+        ? labels.map(y => { const v = totalsMap[Number(y)]; return v != null ? Number(v) : 0; })
+        : MONTH_LABELS.map((_, i) => { const v = totalsMap[i + 1]; return v != null ? Number(v) : 0; });
 
     const s = getComputedStyle(document.documentElement);
     const accentColor  = s.getPropertyValue('--accent').trim();
@@ -837,7 +835,7 @@
       document.getElementById('monthly-chart').getContext('2d'), {
         type: 'bar',
         data: {
-          labels: MONTH_LABELS,
+          labels: labels,
           datasets: [{ data: values, backgroundColor: barColors, borderRadius: 6, borderSkipped: false }]
         },
         options: {
@@ -872,15 +870,46 @@
   // =============================================
   // AUTH CHECK
   // =============================================
+  function populateYearSelect(startYear) {
+    var sel = document.getElementById('year-select');
+    var allOpt = document.createElement('option');
+    allOpt.value = 'all';
+    allOpt.textContent = startYear + ' – now';
+    sel.appendChild(allOpt);
+    for (var y = currentYear; y >= startYear; y--) {
+      var opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y;
+      if (y === currentYear) { opt.selected = true; }
+      sel.appendChild(opt);
+    }
+  }
+
+  function setAppName(name) {
+    document.title = name;
+    const h1 = document.querySelector('.logo-block h1');
+    const parts = name.match(/^([A-Z][a-z]+)([A-Z].+)$/);
+    if (parts) {
+      h1.innerHTML = parts[1] + '<span>' + parts[2] + '</span>';
+    } else {
+      h1.textContent = name;
+    }
+  }
+
   async function init() {
     try {
-      const res = await fetch('/api/me');
-      if (res.ok) {
+      const [configRes, meRes] = await Promise.all([fetch('/api/config'), fetch('/api/me')]);
+      const config = configRes.ok ? await configRes.json() : { name: 'GmailScanner', startYear: 2020 };
+      setAppName(config.name || 'GmailScanner');
+      populateYearSelect(config.startYear);
+      if (meRes.ok) {
         showScanSection();
       } else {
         showAuthSection();
       }
     } catch {
+      setAppName('GmailScanner');
+      populateYearSelect(2020);
       showScanSection(); // fallback: Spring Security handles it
     }
   }
@@ -900,7 +929,7 @@
   // =============================================
   async function runScan() {
     const group = document.getElementById('group-select').value;
-    const year = document.getElementById('year-input').value;
+    const year = document.getElementById('year-select').value;
     const btn = document.getElementById('scan-btn');
     const errEl = document.getElementById('error-msg');
 
@@ -1012,10 +1041,8 @@
         `${data.sources.length} source${data.sources.length !== 1 ? 's' : ''}`;
 
     renderChart(data.sources);
-    lastMonthlyTotals = data.monthlyTotals;
-    lastPeriod = data.period;
-    document.getElementById('monthly-year-badge').textContent = data.period;
-    renderMonthlyChart(data.monthlyTotals, data.period);
+    lastData = data;
+    renderBreakdownChart(data);
   }
 
   function renderChart(sources) {

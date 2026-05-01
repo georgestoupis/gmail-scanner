@@ -18,11 +18,11 @@ import org.springframework.security.web.SecurityFilterChain;
 public class WebSecurityConfigurationAdapter {
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http, OAuth2AuthorizationRequestResolver authorizationRequestResolver) throws Exception {
+  public SecurityFilterChain filterChain(HttpSecurity http, OAuth2AuthorizationRequestResolver authorizationRequestResolver) {
     http.authorizeHttpRequests(
             auth -> auth
                 .requestMatchers("/", "/index.html", "/favicon.ico", "/error").permitAll()
-                .requestMatchers("/api/me").permitAll()
+                .requestMatchers("/api/me", "/api/config").permitAll()
                 .anyRequest().authenticated())
         .oauth2Login(
             oauth2 -> oauth2.defaultSuccessUrl("/", true)

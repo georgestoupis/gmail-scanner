@@ -1,5 +1,6 @@
 package com.gmail.scanner.service;
 
+import com.gmail.scanner.config.AppConfiguration;
 import com.gmail.scanner.exception.InsufficientScopeException;
 import com.gmail.scanner.service.model.Order;
 import com.gmail.scanner.service.model.Source;
@@ -36,12 +37,35 @@ import org.springframework.util.MimeTypeUtils;
 public class OrderService {
 
   private static final Logger LOG = LoggerFactory.getLogger(OrderService.class);
-  private static final long GMAIL_PAGE_MAX_RESULTS = 500L;
-  private static final int GMAIL_MESSAGE_BATCH_SIZE = 20;
   private static final String GMAIL_USER = "me";
   private static final String PERIOD_QUERY_STRING = " AND before:%1$d/12/31 AND after:%1$d/01/01";
+  private static final String ALL_TIME_QUERY_STRING = " AND after:%1$d/01/01";
 
-  public Map<Source, List<Order>> getOrderMap(Gmail gmail, int year, Map<Source, String> queries) {
+  private final AppConfiguration appConfig;
+
+  public OrderService(AppConfiguration appConfig) {
+    this.appConfig = appConfig;
+  }
+
+  public Map<Source, List<Order>> getOrderMapAllTime(Gmail gmail, Map<Source, String> queries) {
+    Map<Source, List<Order>> orders = new EnumMap<>(Source.class);
+    try {
+      for (Entry<Source, String> entry : queries.entrySet()) {
+        String query = entry.getValue() + ALL_TIME_QUERY_STRING.formatted(appConfig.startYear());
+        orders.put(entry.getKey(), this.fetchOrdersForQuery(gmail, entry.getKey(), query));
+      }
+      return orders;
+    } catch (GoogleJsonResponseException ex) {
+      if (ex.getStatusCode() == 403) {
+        throw new InsufficientScopeException(ex.getMessage());
+      }
+      throw new RuntimeException(ex);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public Map<Source, List<Order>> getOrderMapForYear(Gmail gmail, Map<Source, String> queries, int year) {
     Map<Source, List<Order>> orders = new EnumMap<>(Source.class);
     try {
       for (Entry<Source, String> entry : queries.entrySet()) {
@@ -59,13 +83,16 @@ public class OrderService {
   }
 
   private List<Order> getOrdersFromSource(Gmail gmail, int year, Source source, String query) throws IOException {
-    query += PERIOD_QUERY_STRING.formatted(year);
+    return fetchOrdersForQuery(gmail, source, query + PERIOD_QUERY_STRING.formatted(year));
+  }
+
+  private List<Order> fetchOrdersForQuery(Gmail gmail, Source source, String query) throws IOException {
     List<Message> messages = this.loadMessagesPaginated(gmail, query);
     if (messages.isEmpty()) {
-      LOG.info("No {} order emails found for {}", source, year);
+      LOG.info("No {} order emails found", source);
       return Collections.emptyList();
     }
-    LOG.info("Got {} {} order emails for {}", messages.size(), source, year);
+    LOG.info("Got {} {} order emails", messages.size(), source);
 
     List<Message> detailedMessageList = this.populateDetailedMessageList(gmail, messages);
 
@@ -77,10 +104,10 @@ public class OrderService {
       String html = this.findMessagePartWithMimeType(detailedMessage.getPayload().getParts(), MimeTypeUtils.TEXT_HTML_VALUE);
       EmailData emailData = new EmailData(payload, plain, html);
       LocalDateTime orderDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(detailedMessage.getInternalDate()), ZoneId.systemDefault());
-      Optional<Order> order = createOrder(source, year, detailedMessage.getId(), orderDateTime, emailData);
+      Optional<Order> order = createOrder(source, detailedMessage.getId(), orderDateTime, emailData);
       order.ifPresent(orders::add);
     }
-    LOG.info("Parsed {} {} orders for {}", orders.size(), source, year);
+    LOG.info("Parsed {} {} orders", orders.size(), source);
     return orders;
   }
 
@@ -91,7 +118,7 @@ public class OrderService {
       ListMessagesResponse resp = gmail.users().messages()
           .list(GMAIL_USER)
           .setQ(query)
-          .setMaxResults(GMAIL_PAGE_MAX_RESULTS)
+          .setMaxResults((long) appConfig.gmail().pageMaxResults())
           .setPageToken(pageToken)
           .execute();
       if (resp.getMessages() != null) {
@@ -116,7 +143,7 @@ public class OrderService {
     };
 
     BatchRequest batchRequest = gmail.batch();
-    List<List<Message>> lists = Lists.partition(messages, GMAIL_MESSAGE_BATCH_SIZE);
+    List<List<Message>> lists = Lists.partition(messages, appConfig.gmail().batchSize());
     for (List<Message> list : lists) {
       for (Message message : list) {
         gmail.users().messages().get(GMAIL_USER, message.getId()).queue(batchRequest, callback);
@@ -146,7 +173,7 @@ public class OrderService {
     return null;
   }
 
-  private Optional<Order> createOrder(Source source, int year, String detailedMessageId, LocalDateTime orderDateTime, EmailData emailData) {
+  private Optional<Order> createOrder(Source source, String detailedMessageId, LocalDateTime orderDateTime, EmailData emailData) {
     try {
       Optional<String> price = source.getParser().parseOrderPrice(emailData);
       if (price.isPresent()) {
@@ -154,8 +181,8 @@ public class OrderService {
       }
     } catch (Exception ignored) {
     }
-    LOG.warn("{} {} Failed to parse email messageId={}", source, year, detailedMessageId);
-    LOG.debug("{} {} Failed to parse email body: {}", source, year, this.logBase64(emailData.toString()));
+    LOG.warn("{} {} Failed to parse email messageId={}", source, orderDateTime.getYear(), detailedMessageId);
+    LOG.debug("{} {} Failed to parse email body: {}", source, orderDateTime.getYear(), this.logBase64(emailData.toString()));
     return Optional.empty();
   }
 
