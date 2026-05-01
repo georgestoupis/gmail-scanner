@@ -60,15 +60,15 @@ class ParserUtilsTest {
   }
 
   @Test
-  void parseHtmlTdElements_stripsNonAsciiCharacters() {
+  void parseHtmlTdElements_keepsNonAsciiCharacters() {
     Document doc = Jsoup.parse("<table><tr><td>€12.50</td></tr></table>");
-    assertThat(ParserUtils.parseHtmlTdElements(doc)).containsExactly("12.50");
+    assertThat(ParserUtils.parseHtmlTdElements(doc)).containsExactly("€12.50");
   }
 
   @Test
-  void parseHtmlTdElements_stripsGreekCharacters() {
+  void parseHtmlTdElements_keepsGreekCharacters() {
     Document doc = Jsoup.parse("<table><tr><td>Τελικό ποσό</td></tr></table>");
-    assertThat(ParserUtils.parseHtmlTdElements(doc)).containsExactly("");
+    assertThat(ParserUtils.parseHtmlTdElements(doc)).containsExactly("Τελικό ποσό");
   }
 
   @Test
