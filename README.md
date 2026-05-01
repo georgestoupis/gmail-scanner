@@ -5,9 +5,9 @@ A Spring Boot application that scans your Gmail inbox for order confirmation ema
 ## Features
 
 - Authenticates with your Google account via OAuth2 (read-only Gmail access)
-- Scans emails from 9 supported vendors across 4 categories:
+- Scans emails from 10 supported vendors across 4 categories:
   - **Food:** Efood, Wolt, Box
-  - **Games:** Steam, Kinguin, Riot Games, PlayStation
+  - **Games:** Steam, Kinguin, Riot Games, PlayStation, Nintendo
   - **Shopping:** Skroutz
   - **Travel:** Uber
 - Returns total spend, per-vendor breakdown, average monthly spend, and a month-by-month breakdown for any given year
@@ -54,9 +54,12 @@ All endpoints require an authenticated session (redirect to Google login happens
 | Method | Path | Description |
 | ------ | ---- | ----------- |
 | `GET` | `/api/me` | Returns the authenticated user's email address |
+| `GET` | `/api/config` | Returns configuration values |
 | `GET` | `/scan/{group}/{year}` | Returns spending analytics for a category and year |
 
 **Valid group values:** `food`, `games`, `shopping`, `travel`
+
+**Valid year values:** a 4-digit year (e.g. `2024`), or `all` for all-time results since the configured start year
 
 ### Example response — `GET /scan/food/2024`
 
@@ -128,6 +131,7 @@ src/main/java/com/gmail/scanner/
 │   ├── OrderService.java             # Core Gmail scanning logic
 │   ├── model/Source.java             # Vendor enum (9 vendors)
 │   ├── parser/                       # Vendor-specific email parsers
+│   │   └── fallback/                 # FallbackParser: generic price extraction
 │   └── queries/                      # Gmail search query builders
 ├── security/                         # OAuth2 config and token provider
 ├── google/GoogleServiceProvider.java # Gmail API client factory
