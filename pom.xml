@@ -23,7 +23,7 @@
     <google-api-client.version>2.9.0</google-api-client.version>
     <google-oauth-client-jetty.version>1.39.0</google-oauth-client-jetty.version>
     <google-api-services-gmail.version>v1-rev20260413-2.0.0</google-api-services-gmail.version>
-    <jsoup.version>1.22.2</jsoup.version>
+    <jsoup.version>1.23.1</jsoup.version>
     <commons-lang3.version>3.20.0</commons-lang3.version>
   </properties>
 
